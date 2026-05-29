@@ -182,6 +182,8 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
     expunged_messages = 0
     expunge_method: ExpungeMethod = "none"
     if options.execute and affected_uids:
+        if options.expunge:
+            _validate_expunge_options(capabilities, options)
         _mark_deleted(client, affected_uids)
         marked_deleted_messages = len(affected_uids)
         if options.expunge:
@@ -409,11 +411,7 @@ def _expunge_deleted(
             )
         return len(uids), "uid-expunge"
 
-    if not options.allow_folder_expunge:
-        raise ImapOperationError(
-            "server does not advertise UIDPLUS; refusing folder-wide EXPUNGE unless "
-            "--allow-folder-expunge is set"
-        )
+    _validate_expunge_options(capabilities, options)
 
     data = _call("EXPUNGE", client.expunge)
     warnings.append(
@@ -421,6 +419,14 @@ def _expunge_deleted(
         "message already marked \\Deleted in the selected mailbox."
     )
     return _count_expunge_responses(data), "folder-expunge"
+
+
+def _validate_expunge_options(capabilities: set[str], options: DeletionOptions) -> None:
+    if "UIDPLUS" not in capabilities and not options.allow_folder_expunge:
+        raise ImapOperationError(
+            "server does not advertise UIDPLUS; refusing folder-wide EXPUNGE unless "
+            "--allow-folder-expunge is set"
+        )
 
 
 def _count_expunge_responses(data: list[RawImapData]) -> int:

@@ -273,6 +273,7 @@ def test_delete_execute_refuses_folder_expunge_without_opt_in() -> None:
         assert "--allow-folder-expunge" in str(exc)
     else:
         raise AssertionError("expected unsafe expunge refusal")
+    assert not any(call == "STORE" for call, _ in client.calls)
 
 
 def test_delete_execute_allows_folder_expunge_with_opt_in() -> None:
