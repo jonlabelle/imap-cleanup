@@ -182,15 +182,7 @@ def _run_delete(args: argparse.Namespace) -> int:
 
 
 def _connection_config_from_args(args: argparse.Namespace) -> ConnectionConfig | None:
-    missing = [
-        name
-        for name, value in (
-            ("host", args.host),
-            ("username", args.username),
-            ("password", args.password),
-        )
-        if not value
-    ]
+    missing = _missing_connection_values(args)
     if missing:
         values = ", ".join(missing)
         print(f"imap-cleanup: missing required connection value(s): {values}", file=sys.stderr)
@@ -203,6 +195,17 @@ def _connection_config_from_args(args: argparse.Namespace) -> ConnectionConfig |
         password=str(args.password),
         use_ssl=bool(args.ssl),
     )
+
+
+def _missing_connection_values(args: argparse.Namespace) -> list[str]:
+    missing: list[str] = []
+    if not args.host:
+        missing.append("host")
+    if not args.username:
+        missing.append("username")
+    if not args.password:
+        missing.append("password")
+    return missing
 
 
 def _add_connection_arguments(parser: argparse.ArgumentParser) -> None:
