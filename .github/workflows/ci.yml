@@ -73,8 +73,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: codeql
     uses: ./.github/workflows/_semantic-release.yml
-    secrets:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     permissions:
       contents: write
       issues: write

@@ -4,9 +4,7 @@ name: Semantic release
 
 on:
   workflow_call:
-    secrets:
-      GH_TOKEN:
-        required: true
+  workflow_dispatch:
 
 jobs:
   semantic-tag:
@@ -43,7 +41,7 @@ jobs:
 
       - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -o pipefail
           npx semantic-release --ci 2>&1 | tee "$RUNNER_TEMP/release.log"
