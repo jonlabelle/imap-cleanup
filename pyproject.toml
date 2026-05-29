@@ -1,6 +1,6 @@
 [project]
 name = "imap-cleanup"
-version = "0.1.0"
+version = "1.0.0"
 description = "IMAP folder size reporting CLI"
 readme = "README.md"
 authors = [
