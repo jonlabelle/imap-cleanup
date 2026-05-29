@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.0.0...v1.1.0) (2026-05-29)
+
+
+### Features
+
+* add IMAP cleanup actions ([#1](https://github.com/jonlabelle/imap-cleanup/issues/1)) ([bcf770c](https://github.com/jonlabelle/imap-cleanup/commit/bcf770c9c92bca2da71aad9423b0c0a66de2f56e))
+
 # 1.0.0 (2026-05-29)
 
 
