@@ -5,7 +5,13 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from imap_cleanup.models import AccountReport, FolderReport, QuotaReport, QuotaResource
+from imap_cleanup.models import (
+    AccountReport,
+    DeletionReport,
+    FolderReport,
+    QuotaReport,
+    QuotaResource,
+)
 
 
 def render_table(report: AccountReport) -> str:
@@ -31,6 +37,39 @@ def render_table(report: AccountReport) -> str:
 
 def render_json(report: AccountReport) -> str:
     return json.dumps(_account_report_to_dict(report), indent=2, sort_keys=True)
+
+
+def render_deletion_table(report: DeletionReport) -> str:
+    rows = [
+        ("Mailbox", report.mailbox),
+        ("Mode", report.mode),
+        ("Criteria", " ".join(report.search_criteria)),
+        ("Messages in mailbox", f"{report.selected_messages:,}"),
+        ("Search matches", f"{report.searched_messages:,}"),
+        ("Filter matches", f"{report.matched_messages:,}"),
+        ("Affected messages", f"{report.affected_messages:,}"),
+        ("Affected size", format_bytes(report.affected_size_bytes)),
+        ("Marked deleted", f"{report.marked_deleted_messages:,}"),
+        ("Expunged", f"{report.expunged_messages:,}"),
+        ("Expunge method", report.expunge_method),
+    ]
+    width = max(len(label) for label, _ in rows)
+    lines = [f"{label.ljust(width)}  {value}" for label, value in rows]
+    if report.uid_sample:
+        sample = ", ".join(str(uid) for uid in report.uid_sample)
+        lines.append(f"{'UID sample'.ljust(width)}  {sample}")
+    if report.warnings:
+        lines.append("")
+        lines.append("Warnings:")
+        lines.extend(f"- {warning}" for warning in report.warnings)
+    if report.mode == "dry-run" and report.affected_messages:
+        lines.append("")
+        lines.append("Pass --execute to mark these messages \\Deleted.")
+    return "\n".join(lines)
+
+
+def render_deletion_json(report: DeletionReport) -> str:
+    return json.dumps(_deletion_report_to_dict(report), indent=2, sort_keys=True)
 
 
 def format_bytes(size_bytes: int) -> str:
@@ -107,6 +146,25 @@ def _account_report_to_dict(report: AccountReport) -> dict[str, Any]:
             for folder in report.folders
         ],
         "quota": _quota_to_dict(report.quota) if report.quota is not None else None,
+    }
+
+
+def _deletion_report_to_dict(report: DeletionReport) -> dict[str, Any]:
+    return {
+        "affected_messages": report.affected_messages,
+        "affected_size_bytes": report.affected_size_bytes,
+        "affected_human_size": format_bytes(report.affected_size_bytes),
+        "expunge_method": report.expunge_method,
+        "expunged_messages": report.expunged_messages,
+        "mailbox": report.mailbox,
+        "marked_deleted_messages": report.marked_deleted_messages,
+        "matched_messages": report.matched_messages,
+        "mode": report.mode,
+        "search_criteria": report.search_criteria,
+        "searched_messages": report.searched_messages,
+        "selected_messages": report.selected_messages,
+        "uid_sample": report.uid_sample,
+        "warnings": report.warnings,
     }
 
 

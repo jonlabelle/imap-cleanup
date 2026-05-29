@@ -1,11 +1,13 @@
 from imap_cleanup.models import QuotaReport
 from imap_cleanup.parsing import (
     parse_capabilities,
+    parse_fetch_size_by_uid,
     parse_fetch_sizes,
     parse_list_response,
     parse_quota_response,
     parse_select_count,
     parse_status_response,
+    parse_uid_search_response,
     tokenize_imap,
 )
 
@@ -60,6 +62,21 @@ def test_parse_fetch_sizes_sums_tuple_and_byte_responses() -> None:
     )
 
     assert sizes == [10, 25, 35]
+
+
+def test_parse_fetch_size_by_uid_maps_sizes() -> None:
+    sizes = parse_fetch_size_by_uid(
+        [
+            b"1 (UID 101 RFC822.SIZE 10)",
+            b"2 (RFC822.SIZE 25 UID 102)",
+        ]
+    )
+
+    assert sizes == {101: 10, 102: 25}
+
+
+def test_parse_uid_search_response_reads_uids() -> None:
+    assert parse_uid_search_response([b"101 102 103"]) == [101, 102, 103]
 
 
 def test_parse_quota_response_extracts_storage_resource() -> None:

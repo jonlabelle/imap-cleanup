@@ -1,7 +1,20 @@
 import json
 
-from imap_cleanup.models import AccountReport, FolderReport, QuotaReport, QuotaResource, ReportError
-from imap_cleanup.rendering import format_bytes, render_json, render_table
+from imap_cleanup.models import (
+    AccountReport,
+    DeletionReport,
+    FolderReport,
+    QuotaReport,
+    QuotaResource,
+    ReportError,
+)
+from imap_cleanup.rendering import (
+    format_bytes,
+    render_deletion_json,
+    render_deletion_table,
+    render_json,
+    render_table,
+)
 
 
 def test_format_bytes_uses_binary_units() -> None:
@@ -46,3 +59,53 @@ def test_render_json_matches_report_schema() -> None:
         "method": "rfc822-size",
     }
     assert payload["errors"] == []
+
+
+def test_render_deletion_table_includes_action_summary() -> None:
+    report = DeletionReport(
+        mailbox="Archive",
+        mode="dry-run",
+        search_criteria=["BEFORE", "01-Jan-2026"],
+        selected_messages=10,
+        searched_messages=4,
+        matched_messages=2,
+        affected_messages=2,
+        affected_size_bytes=2048,
+        marked_deleted_messages=0,
+        expunged_messages=0,
+        expunge_method="none",
+        uid_sample=[101, 102],
+        warnings=["Dry run only."],
+    )
+
+    table = render_deletion_table(report)
+
+    assert "Archive" in table
+    assert "2.0 KiB" in table
+    assert "Pass --execute" in table
+    assert "Dry run only." in table
+
+
+def test_render_deletion_json_matches_report_schema() -> None:
+    report = DeletionReport(
+        mailbox="Archive",
+        mode="execute",
+        search_criteria=["ALL"],
+        selected_messages=10,
+        searched_messages=4,
+        matched_messages=4,
+        affected_messages=1,
+        affected_size_bytes=30,
+        marked_deleted_messages=1,
+        expunged_messages=1,
+        expunge_method="uid-expunge",
+        uid_sample=[101],
+        warnings=[],
+    )
+
+    payload = json.loads(render_deletion_json(report))
+
+    assert payload["mailbox"] == "Archive"
+    assert payload["mode"] == "execute"
+    assert payload["affected_human_size"] == "30 B"
+    assert payload["expunge_method"] == "uid-expunge"

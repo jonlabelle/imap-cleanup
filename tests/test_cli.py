@@ -67,3 +67,33 @@ def test_command_line_flags_override_dotenv_defaults(
     args = build_parser().parse_args(["folders", "--host", "imap.from-flag.example.com"])
 
     assert args.host == "imap.from-flag.example.com"
+
+
+def test_delete_command_parses_selectors() -> None:
+    args = build_parser().parse_args(
+        [
+            "delete",
+            "--host",
+            "imap.example.com",
+            "--username",
+            "user@example.com",
+            "--password",
+            "secret",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2026-01-01",
+            "--larger-than",
+            "25MiB",
+            "--limit",
+            "10",
+            "--execute",
+        ]
+    )
+
+    assert args.command == "delete"
+    assert args.mailbox == "Archive"
+    assert args.before.isoformat() == "2026-01-01"
+    assert args.larger_than == 25 * 1024 * 1024
+    assert args.limit == 10
+    assert args.execute is True

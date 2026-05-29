@@ -6,17 +6,28 @@ import imaplib
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
+from datetime import date
 from typing import Any, Protocol, cast
 
-from imap_cleanup.models import AccountReport, FolderReport, QuotaReport, ReportError
+from imap_cleanup.models import (
+    AccountReport,
+    DeletionMode,
+    DeletionReport,
+    ExpungeMethod,
+    FolderReport,
+    QuotaReport,
+    ReportError,
+)
 from imap_cleanup.parsing import (
     RawImapData,
     parse_capabilities,
+    parse_fetch_size_by_uid,
     parse_fetch_sizes,
     parse_list_response,
     parse_quota_response,
     parse_select_count,
     parse_status_response,
+    parse_uid_search_response,
 )
 
 type ImapResponse = tuple[str, list[RawImapData] | None]
@@ -50,10 +61,12 @@ class ImapConnection(Protocol):
     def uid(
         self,
         command: str,
-        *args: str,
+        *args: str | None,
     ) -> ImapResponse: ...
 
     def getquotaroot(self, mailbox: str) -> ImapResponse: ...
+
+    def expunge(self) -> ImapResponse: ...
 
 
 @dataclass(frozen=True)
@@ -65,6 +78,20 @@ class ConnectionConfig:
     use_ssl: bool = True
 
 
+@dataclass(frozen=True)
+class DeletionOptions:
+    mailbox: str
+    all_messages: bool = False
+    before: date | None = None
+    since: date | None = None
+    larger_than: int | None = None
+    smaller_than: int | None = None
+    limit: int | None = None
+    execute: bool = False
+    expunge: bool = False
+    allow_folder_expunge: bool = False
+
+
 def build_account_report(config: ConnectionConfig) -> AccountReport:
     try:
         client = open_connection(config)
@@ -74,6 +101,20 @@ def build_account_report(config: ConnectionConfig) -> AccountReport:
     try:
         _call("LOGIN", lambda: client.login(config.username, config.password))
         return collect_account_report(client)
+    finally:
+        with suppress(Exception):
+            client.logout()
+
+
+def build_deletion_report(config: ConnectionConfig, options: DeletionOptions) -> DeletionReport:
+    try:
+        client = open_connection(config)
+    except OSError as exc:
+        raise ImapCleanupError(f"failed to connect to {config.host}:{config.port}: {exc}") from exc
+
+    try:
+        _call("LOGIN", lambda: client.login(config.username, config.password))
+        return collect_deletion_report(client, options)
     finally:
         with suppress(Exception):
             client.logout()
@@ -113,6 +154,62 @@ def collect_account_report(client: ImapConnection) -> AccountReport:
     )
 
 
+def collect_deletion_report(client: ImapConnection, options: DeletionOptions) -> DeletionReport:
+    capabilities = _read_capabilities(client)
+    mailbox_arg = quote_mailbox(options.mailbox)
+    mode: DeletionMode = "execute" if options.execute else "dry-run"
+    select_operation = "SELECT" if options.execute else "EXAMINE"
+    select_data = _call(
+        f"{select_operation} {mailbox_arg}",
+        lambda: client.select(mailbox_arg, readonly=not options.execute),
+    )
+    selected_messages = parse_select_count(select_data)
+    if selected_messages is None:
+        raise ImapOperationError(f"{select_operation} {mailbox_arg} did not return a message count")
+
+    search_criteria = _search_criteria(options)
+    search_data = _call(
+        f"UID SEARCH {mailbox_arg}",
+        lambda: client.uid("SEARCH", None, *search_criteria),
+    )
+    searched_uids = parse_uid_search_response(search_data)
+    sizes = _fetch_uid_sizes(client, searched_uids)
+    matched_uids = _filter_uids_by_size(searched_uids, sizes, options)
+    affected_uids = matched_uids[: options.limit] if options.limit is not None else matched_uids
+    warnings = _deletion_warnings(options, searched_uids, sizes)
+
+    marked_deleted_messages = 0
+    expunged_messages = 0
+    expunge_method: ExpungeMethod = "none"
+    if options.execute and affected_uids:
+        _mark_deleted(client, affected_uids)
+        marked_deleted_messages = len(affected_uids)
+        if options.expunge:
+            expunged_messages, expunge_method = _expunge_deleted(
+                client,
+                affected_uids,
+                capabilities,
+                options,
+                warnings,
+            )
+
+    return DeletionReport(
+        mailbox=options.mailbox,
+        mode=mode,
+        search_criteria=search_criteria,
+        selected_messages=selected_messages,
+        searched_messages=len(searched_uids),
+        matched_messages=len(matched_uids),
+        affected_messages=len(affected_uids),
+        affected_size_bytes=sum(sizes.get(uid, 0) for uid in affected_uids),
+        marked_deleted_messages=marked_deleted_messages,
+        expunged_messages=expunged_messages,
+        expunge_method=expunge_method,
+        uid_sample=affected_uids[:10],
+        warnings=warnings,
+    )
+
+
 def _read_capabilities(client: ImapConnection) -> set[str]:
     data = _call("CAPABILITY", client.capability)
     return parse_capabilities(data)
@@ -137,9 +234,10 @@ def _folder_report(
 
 
 def _folder_report_with_status_size(client: ImapConnection, mailbox: str) -> FolderReport:
+    mailbox_arg = quote_mailbox(mailbox)
     data = _call(
-        f'STATUS "{mailbox}"',
-        lambda: client.status(mailbox, "(MESSAGES SIZE)"),
+        f"STATUS {mailbox_arg}",
+        lambda: client.status(mailbox_arg, "(MESSAGES SIZE)"),
     )
     values = parse_status_response(data)
     messages = values.get("MESSAGES")
@@ -155,9 +253,10 @@ def _folder_report_with_status_size(client: ImapConnection, mailbox: str) -> Fol
 
 
 def _folder_report_with_rfc822_size(client: ImapConnection, mailbox: str) -> FolderReport:
+    mailbox_arg = quote_mailbox(mailbox)
     select_data = _call(
-        f'EXAMINE "{mailbox}"',
-        lambda: client.select(mailbox, readonly=True),
+        f"EXAMINE {mailbox_arg}",
+        lambda: client.select(mailbox_arg, readonly=True),
     )
     messages = parse_select_count(select_data)
     if messages is None:
@@ -184,9 +283,10 @@ def _folder_report_with_rfc822_size(client: ImapConnection, mailbox: str) -> Fol
 
 
 def _read_quota(client: ImapConnection, mailbox: str) -> QuotaReport | None:
+    mailbox_arg = quote_mailbox(mailbox)
     data = _call(
-        f'GETQUOTAROOT "{mailbox}"',
-        lambda: client.getquotaroot(mailbox),
+        f"GETQUOTAROOT {mailbox_arg}",
+        lambda: client.getquotaroot(mailbox_arg),
     )
     return parse_quota_response(data)
 
@@ -196,6 +296,147 @@ def _quota_mailbox(mailboxes: list[str]) -> str:
         if mailbox.upper() == "INBOX":
             return mailbox
     return mailboxes[0] if mailboxes else "INBOX"
+
+
+def quote_mailbox(mailbox: str) -> str:
+    escaped = mailbox.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _search_criteria(options: DeletionOptions) -> list[str]:
+    criteria: list[str] = []
+    if options.since is not None:
+        criteria.extend(["SINCE", _format_imap_date(options.since)])
+    if options.before is not None:
+        criteria.extend(["BEFORE", _format_imap_date(options.before)])
+    return criteria or ["ALL"]
+
+
+def _format_imap_date(value: date) -> str:
+    months = (
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    )
+    return f"{value.day:02d}-{months[value.month - 1]}-{value.year:04d}"
+
+
+def _fetch_uid_sizes(client: ImapConnection, uids: list[int]) -> dict[int, int]:
+    sizes: dict[int, int] = {}
+    for batch in _uid_batches(uids):
+        uid_set = _uid_set(batch)
+
+        def fetch_command(uid_set: str = uid_set) -> ImapResponse:
+            return client.uid("FETCH", uid_set, "(UID RFC822.SIZE)")
+
+        data = _call(
+            "UID FETCH sizes",
+            fetch_command,
+        )
+        sizes.update(parse_fetch_size_by_uid(data))
+    return sizes
+
+
+def _filter_uids_by_size(
+    uids: list[int],
+    sizes: dict[int, int],
+    options: DeletionOptions,
+) -> list[int]:
+    matched: list[int] = []
+    for uid in uids:
+        size = sizes.get(uid)
+        if options.larger_than is not None and (size is None or size <= options.larger_than):
+            continue
+        if options.smaller_than is not None and (size is None or size >= options.smaller_than):
+            continue
+        matched.append(uid)
+    return matched
+
+
+def _deletion_warnings(
+    options: DeletionOptions,
+    searched_uids: list[int],
+    sizes: dict[int, int],
+) -> list[str]:
+    warnings: list[str] = []
+    if options.expunge and not options.execute:
+        warnings.append("Dry run only; no messages will be marked deleted or expunged.")
+    missing_sizes = len(searched_uids) - len(sizes)
+    if missing_sizes > 0:
+        warnings.append(f"{missing_sizes:,} searched message(s) did not return RFC822.SIZE.")
+    return warnings
+
+
+def _mark_deleted(client: ImapConnection, uids: list[int]) -> None:
+    for batch in _uid_batches(uids):
+        uid_set = _uid_set(batch)
+
+        def store_command(uid_set: str = uid_set) -> ImapResponse:
+            return client.uid("STORE", uid_set, "+FLAGS.SILENT", r"(\Deleted)")
+
+        _call(
+            "UID STORE +FLAGS.SILENT \\Deleted",
+            store_command,
+        )
+
+
+def _expunge_deleted(
+    client: ImapConnection,
+    uids: list[int],
+    capabilities: set[str],
+    options: DeletionOptions,
+    warnings: list[str],
+) -> tuple[int, ExpungeMethod]:
+    if "UIDPLUS" in capabilities:
+        for batch in _uid_batches(uids):
+            uid_set = _uid_set(batch)
+
+            def expunge_command(uid_set: str = uid_set) -> ImapResponse:
+                return client.uid("EXPUNGE", uid_set)
+
+            _call(
+                "UID EXPUNGE",
+                expunge_command,
+            )
+        return len(uids), "uid-expunge"
+
+    if not options.allow_folder_expunge:
+        raise ImapOperationError(
+            "server does not advertise UIDPLUS; refusing folder-wide EXPUNGE unless "
+            "--allow-folder-expunge is set"
+        )
+
+    data = _call("EXPUNGE", client.expunge)
+    warnings.append(
+        "Used folder-wide EXPUNGE; servers without UIDPLUS can permanently remove every "
+        "message already marked \\Deleted in the selected mailbox."
+    )
+    return _count_expunge_responses(data), "folder-expunge"
+
+
+def _count_expunge_responses(data: list[RawImapData]) -> int:
+    count = 0
+    for item in data:
+        if item is not None:
+            count += 1
+    return count
+
+
+def _uid_batches(uids: list[int], size: int = 500) -> list[list[int]]:
+    return [uids[index : index + size] for index in range(0, len(uids), size)]
+
+
+def _uid_set(uids: list[int]) -> str:
+    return ",".join(str(uid) for uid in uids)
 
 
 def _require_ok(

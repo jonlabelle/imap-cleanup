@@ -10,6 +10,7 @@ from imap_cleanup.models import QuotaReport, QuotaResource
 RawImapData = bytes | str | tuple[bytes | str, bytes | str] | None
 
 _FETCH_SIZE_RE = re.compile(r"\bRFC822\.SIZE\s+(\d+)\b", re.IGNORECASE)
+_FETCH_UID_RE = re.compile(r"\bUID\s+(\d+)\b", re.IGNORECASE)
 
 
 def parse_capabilities(data: Iterable[RawImapData]) -> set[str]:
@@ -57,6 +58,25 @@ def parse_fetch_sizes(data: Iterable[RawImapData]) -> list[int]:
         for match in _FETCH_SIZE_RE.finditer(line):
             sizes.append(int(match.group(1)))
     return sizes
+
+
+def parse_fetch_size_by_uid(data: Iterable[RawImapData]) -> dict[int, int]:
+    sizes: dict[int, int] = {}
+    for line in iter_response_text(data):
+        uid = _FETCH_UID_RE.search(line)
+        size = _FETCH_SIZE_RE.search(line)
+        if uid is not None and size is not None:
+            sizes[int(uid.group(1))] = int(size.group(1))
+    return sizes
+
+
+def parse_uid_search_response(data: Iterable[RawImapData]) -> list[int]:
+    uids: list[int] = []
+    for line in iter_response_text(data):
+        for token in line.split():
+            if token.isdigit():
+                uids.append(int(token))
+    return uids
 
 
 def parse_quota_response(data: Iterable[RawImapData]) -> QuotaReport | None:
