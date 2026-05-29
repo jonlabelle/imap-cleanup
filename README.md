@@ -3,8 +3,9 @@
 [![Version][version-badge]][latest-release]
 [![CI][ci-badge]][ci-workflow]
 
-`imap-cleanup` is a personal IMAP tool for finding the largest folders in a
-mailbox account.
+`imap-cleanup` is a personal IMAP CLI for mailbox reporting and cleanup. It can
+list folder sizes, show account quota when available, dry-run cleanup searches,
+mark matched messages `\Deleted`, and expunge them when requested.
 
 This repository is public so it can be cloned, forked, and run locally. The tool
 is not published to PyPI and does not include Python package registry publishing
@@ -58,7 +59,7 @@ current project directory before reading `IMAP_CLEANUP_*` values. Existing shell
 environment variables are not overwritten, and command-line flags take
 precedence over both.
 
-Optional connection flags:
+Common flags:
 
 - `--port`, or `IMAP_CLEANUP_PORT`, defaults to `993`
 - `--ssl` / `--no-ssl`, defaults to SSL enabled
@@ -77,11 +78,16 @@ uv run imap-cleanup delete \
   --larger-than 25MiB
 ```
 
-Selectors can be combined:
+The command requires at least one selector. Selector rules:
 
-- `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys.
+- `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and
+  can be combined with each other and size filters.
 - `--larger-than SIZE` and `--smaller-than SIZE` filter by `RFC822.SIZE`.
-- `--all` matches the whole folder before size filters.
+- When both date or size bounds are used, the lower bound must be below the
+  upper bound.
+- Size-only filters search the whole folder first.
+- `--all` searches the whole folder first and cannot be combined with date
+  selectors.
 - `--limit N` caps how many matching messages are affected.
 
 To apply the deletion, pass `--execute`. This marks matching messages with the
@@ -94,10 +100,10 @@ uv run imap-cleanup delete \
   --execute
 ```
 
-Messages marked `\Deleted` are not always permanently removed until expunged.
-To permanently remove the messages in the same run, pass `--expunge`. When the
-server supports `UIDPLUS`, the CLI uses UID-scoped expunge so only the matched
-UIDs are expunged:
+Messages marked `\Deleted` are not always permanently removed until expunged. To
+permanently remove the messages in the same run, pass `--execute` and
+`--expunge`. When the server supports `UIDPLUS`, the CLI uses UID-scoped expunge
+so only the matched UIDs are expunged:
 
 ```bash
 uv run imap-cleanup delete \
@@ -112,7 +118,7 @@ unless `--allow-folder-expunge` is also set. Plain folder expunge can
 permanently remove every message already marked `\Deleted` in that selected
 folder, including messages not matched by the current run.
 
-## What it reports
+## Folder reports
 
 The `folders` command prints selectable mailboxes with message counts and folder
 sizes:
@@ -125,8 +131,8 @@ Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
 ```
 
 When the server advertises `STATUS=SIZE`, the tool asks the server for folder
-sizes directly. Otherwise, it opens each folder and sums each message's
-`RFC822.SIZE`.
+sizes directly. If direct size lookup is unavailable or fails, it opens each
+folder and sums each message's `RFC822.SIZE`.
 
 When the server advertises `QUOTA`, the command also tries `GETQUOTAROOT` and
 shows quota usage if the server returns it.

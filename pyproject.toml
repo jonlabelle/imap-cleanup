@@ -1,7 +1,7 @@
 [project]
 name = "imap-cleanup"
 version = "1.0.0"
-description = "IMAP folder size reporting and cleanup CLI"
+description = "IMAP mailbox reporting and cleanup CLI"
 readme = "README.md"
 authors = [
     { name = "Jon LaBelle" }

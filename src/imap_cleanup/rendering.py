@@ -1,4 +1,4 @@
-"""Output renderers for account reports."""
+"""Output renderers for CLI reports."""
 
 from __future__ import annotations
 

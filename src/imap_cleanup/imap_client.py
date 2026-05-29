@@ -1,4 +1,4 @@
-"""IMAP account reporting."""
+"""IMAP reporting and cleanup operations."""
 
 from __future__ import annotations
 
