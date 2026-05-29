@@ -1,4 +1,4 @@
-"""IMAP cleanup reporting tools."""
+"""IMAP cleanup tools."""
 
 from imap_cleanup.cli import main
 

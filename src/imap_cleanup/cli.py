@@ -4,13 +4,44 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 from collections.abc import Sequence
+from datetime import date
 
 from dotenv import find_dotenv, load_dotenv
 
-from imap_cleanup.imap_client import ConnectionConfig, ImapCleanupError, build_account_report
-from imap_cleanup.rendering import render_json, render_table
+from imap_cleanup.imap_client import (
+    ConnectionConfig,
+    DeletionOptions,
+    ImapCleanupError,
+    build_account_report,
+    build_deletion_report,
+)
+from imap_cleanup.rendering import (
+    render_deletion_json,
+    render_deletion_table,
+    render_json,
+    render_table,
+)
+
+_SIZE_RE = re.compile(r"^(\d+(?:\.\d+)?)\s*([KMGT]?I?B?|B)?$", re.IGNORECASE)
+_SIZE_UNITS = {
+    "": 1,
+    "B": 1,
+    "K": 1024,
+    "KB": 1024,
+    "KIB": 1024,
+    "M": 1024**2,
+    "MB": 1024**2,
+    "MIB": 1024**2,
+    "G": 1024**3,
+    "GB": 1024**3,
+    "GIB": 1024**3,
+    "T": 1024**4,
+    "TB": 1024**4,
+    "TIB": 1024**4,
+}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -29,7 +60,7 @@ def load_environment() -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="imap-cleanup",
-        description="IMAP mailbox size reports.",
+        description="IMAP mailbox reporting and cleanup tools.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -37,52 +68,71 @@ def build_parser() -> argparse.ArgumentParser:
         "folders",
         help="Report message counts and storage size for each selectable mailbox.",
     )
-    folders.add_argument("--host", default=os.getenv("IMAP_CLEANUP_HOST"))
-    folders.add_argument(
-        "--port",
-        type=int,
-        default=_env_int("IMAP_CLEANUP_PORT", default=993),
-    )
-    folders.add_argument("--username", default=os.getenv("IMAP_CLEANUP_USERNAME"))
-    folders.add_argument("--password", default=os.getenv("IMAP_CLEANUP_PASSWORD"))
-    folders.add_argument(
-        "--ssl",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use IMAP over TLS. Enabled by default.",
-    )
-    folders.add_argument(
-        "--format",
-        choices=("table", "json"),
-        default="table",
-        help="Output format. Defaults to table.",
-    )
+    _add_connection_arguments(folders)
+    _add_format_argument(folders)
     folders.set_defaults(func=_run_folders)
+
+    delete = subparsers.add_parser(
+        "delete",
+        help="Dry-run or mark matching messages deleted from one mailbox.",
+    )
+    _add_connection_arguments(delete)
+    _add_format_argument(delete)
+    delete.add_argument("--mailbox", required=True, help="Mailbox/folder to clean up.")
+    delete.add_argument(
+        "--all",
+        action="store_true",
+        dest="all_messages",
+        help="Match all messages before applying local size filters.",
+    )
+    delete.add_argument(
+        "--before",
+        type=_date_arg,
+        help="Match messages received before this YYYY-MM-DD date.",
+    )
+    delete.add_argument(
+        "--since",
+        type=_date_arg,
+        help="Match messages received since this YYYY-MM-DD date.",
+    )
+    delete.add_argument(
+        "--larger-than",
+        type=_size_arg,
+        help="Keep only messages larger than this size, for example 25MiB.",
+    )
+    delete.add_argument(
+        "--smaller-than",
+        type=_size_arg,
+        help="Keep only messages smaller than this size, for example 100MiB.",
+    )
+    delete.add_argument(
+        "--limit",
+        type=_positive_int,
+        help="Limit how many matching messages are marked deleted.",
+    )
+    delete.add_argument(
+        "--execute",
+        action="store_true",
+        help="Actually mark matching messages \\Deleted. Without this, delete is a dry run.",
+    )
+    delete.add_argument(
+        "--expunge",
+        action="store_true",
+        help="Permanently remove messages after marking them deleted.",
+    )
+    delete.add_argument(
+        "--allow-folder-expunge",
+        action="store_true",
+        help="Allow folder-wide EXPUNGE when UID-scoped expunge is unavailable.",
+    )
+    delete.set_defaults(func=_run_delete)
     return parser
 
 
 def _run_folders(args: argparse.Namespace) -> int:
-    missing = [
-        name
-        for name, value in (
-            ("host", args.host),
-            ("username", args.username),
-            ("password", args.password),
-        )
-        if not value
-    ]
-    if missing:
-        values = ", ".join(missing)
-        print(f"imap-cleanup: missing required connection value(s): {values}", file=sys.stderr)
+    config = _connection_config_from_args(args)
+    if config is None:
         return 2
-
-    config = ConnectionConfig(
-        host=str(args.host),
-        port=int(args.port),
-        username=str(args.username),
-        password=str(args.password),
-        use_ssl=bool(args.ssl),
-    )
 
     try:
         report = build_account_report(config)
@@ -93,6 +143,153 @@ def _run_folders(args: argparse.Namespace) -> int:
     output = render_json(report) if args.format == "json" else render_table(report)
     print(output)
     return 0
+
+
+def _run_delete(args: argparse.Namespace) -> int:
+    config = _connection_config_from_args(args)
+    if config is None:
+        return 2
+
+    validation_error = _validate_delete_args(args)
+    if validation_error is not None:
+        print(f"imap-cleanup: {validation_error}", file=sys.stderr)
+        return 2
+
+    options = DeletionOptions(
+        mailbox=str(args.mailbox),
+        all_messages=bool(args.all_messages),
+        before=args.before,
+        since=args.since,
+        larger_than=args.larger_than,
+        smaller_than=args.smaller_than,
+        limit=args.limit,
+        execute=bool(args.execute),
+        expunge=bool(args.expunge),
+        allow_folder_expunge=bool(args.allow_folder_expunge),
+    )
+
+    try:
+        report = build_deletion_report(config, options)
+    except ImapCleanupError as exc:
+        print(f"imap-cleanup: {exc}", file=sys.stderr)
+        return 1
+
+    output = (
+        render_deletion_json(report) if args.format == "json" else render_deletion_table(report)
+    )
+    print(output)
+    return 0
+
+
+def _connection_config_from_args(args: argparse.Namespace) -> ConnectionConfig | None:
+    missing = _missing_connection_values(args)
+    if missing:
+        values = ", ".join(missing)
+        print(f"imap-cleanup: missing required connection value(s): {values}", file=sys.stderr)
+        return None
+
+    return ConnectionConfig(
+        host=str(args.host),
+        port=int(args.port),
+        username=str(args.username),
+        password=str(args.password),
+        use_ssl=bool(args.ssl),
+    )
+
+
+def _missing_connection_values(args: argparse.Namespace) -> list[str]:
+    missing: list[str] = []
+    if not args.host:
+        missing.append("host")
+    if not args.username:
+        missing.append("username")
+    if not args.password:
+        missing.append("password")
+    return missing
+
+
+def _add_connection_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--host", default=os.getenv("IMAP_CLEANUP_HOST"))
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=_env_int("IMAP_CLEANUP_PORT", default=993),
+    )
+    parser.add_argument("--username", default=os.getenv("IMAP_CLEANUP_USERNAME"))
+    parser.add_argument("--password", default=os.getenv("IMAP_CLEANUP_PASSWORD"))
+    parser.add_argument(
+        "--ssl",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Use IMAP over TLS. Enabled by default.",
+    )
+
+
+def _add_format_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--format",
+        choices=("table", "json"),
+        default="table",
+        help="Output format. Defaults to table.",
+    )
+
+
+def _validate_delete_args(args: argparse.Namespace) -> str | None:
+    has_selector = any(
+        (
+            args.all_messages,
+            args.before is not None,
+            args.since is not None,
+            args.larger_than is not None,
+            args.smaller_than is not None,
+        )
+    )
+    if not has_selector:
+        return "delete requires at least one selector: --all, --before, --since, or a size filter"
+    if args.all_messages and (args.before is not None or args.since is not None):
+        return "--all cannot be combined with --before or --since"
+    if args.since is not None and args.before is not None and args.since >= args.before:
+        return "--since must be earlier than --before"
+    if (
+        args.larger_than is not None
+        and args.smaller_than is not None
+        and args.larger_than >= args.smaller_than
+    ):
+        return "--larger-than must be smaller than --smaller-than"
+    if args.allow_folder_expunge and not args.expunge:
+        return "--allow-folder-expunge requires --expunge"
+    if args.expunge and not args.execute:
+        return "--expunge requires --execute"
+    return None
+
+
+def _date_arg(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("expected YYYY-MM-DD") from None
+
+
+def _size_arg(value: str) -> int:
+    match = _SIZE_RE.match(value.strip())
+    if match is None:
+        raise argparse.ArgumentTypeError("expected bytes or a size like 25MiB")
+    amount = float(match.group(1))
+    unit = (match.group(2) or "").upper()
+    multiplier = _SIZE_UNITS.get(unit)
+    if multiplier is None:
+        raise argparse.ArgumentTypeError("expected B, KiB, MiB, GiB, or TiB")
+    return int(amount * multiplier)
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("expected a positive integer") from None
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("expected a positive integer")
+    return parsed
 
 
 def _env_int(name: str, *, default: int) -> int:
