@@ -1,5 +1,8 @@
 # imap-cleanup
 
+[![Version][version-badge]][latest-release]
+[![CI][ci-badge]][ci-workflow]
+
 `imap-cleanup` is a personal IMAP tool for finding the largest folders in a
 mailbox account.
 
@@ -111,3 +114,8 @@ Debug launch configurations:
 
 - `imap-cleanup: folders`
 - `imap-cleanup: folders json`
+
+[ci-badge]: https://github.com/jonlabelle/imap-cleanup/actions/workflows/ci.yml/badge.svg?branch=main
+[ci-workflow]: https://github.com/jonlabelle/imap-cleanup/actions/workflows/ci.yml
+[latest-release]: https://github.com/jonlabelle/imap-cleanup/releases/latest
+[version-badge]: https://img.shields.io/github/v/release/jonlabelle/imap-cleanup?label=version&sort=semver
