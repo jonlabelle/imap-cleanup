@@ -1,0 +1,97 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: Python version to use
+        type: string
+        default: "3.13"
+        required: false
+
+env:
+  PYTHON_VERSION: ${{ inputs.python-version }}
+
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+  security-events: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@main
+        with:
+          enable-cache: true
+
+      - name: Validate Python version
+        run: |
+          if [[ ! "$PYTHON_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Invalid python-version: '$PYTHON_VERSION'"
+            exit 1
+          fi
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        run: uv python install "$PYTHON_VERSION"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Type check
+        run: uv run mypy .
+
+      - name: Test
+        run: uv run pytest
+
+  codeql:
+    name: CodeQL analysis
+    needs: ci
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/_codeql.yml
+
+  semantic-tag:
+    name: Semantic release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: codeql
+    uses: ./.github/workflows/_semantic-release.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write

@@ -1,0 +1,17 @@
+{
+  "editor.insertSpaces": true,
+  "editor.rulers": [80, 120],
+
+  // esbenp.prettier-vscode
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "none",
+  "prettier.resolveGlobalModules": true,
+  "prettier.useEditorConfig": true,
+
+  // streetsidesoftware.code-spell-checker
+  "cSpell.words": [
+    "autobuild",
+    "mypy",
+    "pytest"
+  ]
+}

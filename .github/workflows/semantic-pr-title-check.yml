@@ -1,0 +1,27 @@
+# Ensure pull request titles follow the Conventional Commits format
+
+name: Semantic PR Title Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  semantic-pr:
+    name: Semantic PR title
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
