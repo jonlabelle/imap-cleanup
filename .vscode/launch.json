@@ -1,8 +1,28 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
 
-  "configurations": []
+  "configurations": [
+    {
+      "name": "imap-cleanup: folders",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": ["folders"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
+    },
+    {
+      "name": "imap-cleanup: folders json",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": ["folders", "--format", "json"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
+    }
+  ]
 }

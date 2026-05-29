@@ -1,0 +1,82 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "uv: sync",
+      "type": "shell",
+      "command": "uv",
+      "args": ["sync", "--all-extras", "--dev"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: ruff check",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "ruff", "check", "."],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: ruff format check",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "ruff", "format", "--check", "."],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: mypy",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "mypy", "."],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: pytest",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "pytest"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: check all",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "uv: ruff check",
+        "uv: ruff format check",
+        "uv: mypy",
+        "uv: pytest"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: build package",
+      "type": "shell",
+      "command": "uv",
+      "args": ["build"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: folders",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "imap-cleanup", "folders"],
+      "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: folders json",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "imap-cleanup", "folders", "--format", "json"],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -8,9 +8,16 @@
   "prettier.resolveGlobalModules": true,
   "prettier.useEditorConfig": true,
 
+  // ms-python.python
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+
   // streetsidesoftware.code-spell-checker
   "cSpell.words": [
     "autobuild",
+    "debugpy",
     "mypy",
     "pytest"
   ]

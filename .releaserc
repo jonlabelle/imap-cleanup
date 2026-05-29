@@ -1,6 +1,6 @@
 {
   "branches": ["main"],
-  "repositoryUrl": "https://github.com/jonlabelle/replace-tokens-action.git",
+  "repositoryUrl": "https://github.com/jonlabelle/imap-cleanup.git",
   "tagFormat": "v${version}",
   "debug": false,
   "plugins": [
@@ -13,12 +13,19 @@
         "changelogTitle": "# Changelog"
       }
     ],
-    "@semantic-release/exec",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "python3 scripts/set_project_version.py ${nextRelease.version}"
+      }
+    ],
     [
       "@semantic-release/git",
       {
         "assets": [
-          "CHANGELOG.md"
+          "CHANGELOG.md",
+          "pyproject.toml",
+          "uv.lock"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

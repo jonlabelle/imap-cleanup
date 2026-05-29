@@ -13,15 +13,6 @@ on:
       - reopened
 
   workflow_dispatch:
-    inputs:
-      python-version:
-        description: Python version to use
-        type: string
-        default: "3.13"
-        required: false
-
-env:
-  PYTHON_VERSION: ${{ inputs.python-version }}
 
 permissions:
   actions: read
@@ -50,15 +41,8 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Validate Python version
-        run: |
-          if [[ ! "$PYTHON_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-            echo "Invalid python-version: '$PYTHON_VERSION'"
-            exit 1
-          fi
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        run: uv python install "$PYTHON_VERSION"
+      - name: Set up Python from .python-version
+        run: uv python install "$(cat .python-version)"
 
       - name: Install dependencies
         run: uv sync --all-extras --dev

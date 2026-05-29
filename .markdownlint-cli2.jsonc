@@ -21,7 +21,8 @@
         "text",
         "xml",
         "yaml",
-        "plaintext"
+        "plaintext",
+        "dotenv"
       ],
       "language_only": true
     },
