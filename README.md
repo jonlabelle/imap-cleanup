@@ -120,14 +120,14 @@ folder, including messages not matched by the current run.
 
 ## Folder reports
 
-The `folders` command prints selectable mailboxes with message counts and folder
-sizes:
+The `folders` command prints selectable mailboxes sorted by largest reported
+size first:
 
 ```text
 Mailbox  Messages  Size bytes     Size     Method
 -------  --------  -------------  -------  -----------
-INBOX    12,440    5,153,960,755  4.8 GiB  status-size
 Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
+INBOX    12,440    5,153,960,755  4.8 GiB  status-size
 ```
 
 When the server advertises `STATUS=SIZE`, the tool asks the server for folder
@@ -142,9 +142,10 @@ Important notes:
 - Folder size includes the raw email, including encoded attachments.
 - Base64-encoded attachments can count about one third larger than the original
   file.
-- Gmail-style labels are reported independently. A single message can appear in
-  multiple labels, so summed folder totals may exceed account quota usage.
-- Messages marked deleted can still count until the folder is expunged.
+- The table output always warns that Gmail-style labels can double-count the
+  same message across mailboxes.
+- The table output always warns that messages marked `\Deleted` may continue to
+  count until the mailbox is expunged.
 - `STATUS=SIZE` and `QUOTA` are optional IMAP extensions. The CLI falls back to
   `RFC822.SIZE` per message when folder size is not available directly.
 

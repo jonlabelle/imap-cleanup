@@ -25,6 +25,9 @@ def render_table(report: AccountReport) -> str:
     else:
         lines.append("No selectable mailboxes found.")
 
+    lines.append("")
+    lines.extend(_render_folder_caveats())
+
     if report.errors:
         lines.append("")
         lines.append("Errors:")
@@ -92,7 +95,7 @@ def _render_folder_table(folders: list[FolderReport]) -> list[str]:
             format_bytes(folder.size_bytes),
             folder.method,
         )
-        for folder in folders
+        for folder in sorted(folders, key=lambda folder: folder.size_bytes, reverse=True)
     ]
     headers = ("Mailbox", "Messages", "Size bytes", "Size", "Method")
     widths = [
@@ -104,6 +107,16 @@ def _render_folder_table(folders: list[FolderReport]) -> list[str]:
     lines.append(_format_row(tuple("-" * width for width in widths), widths))
     lines.extend(_format_row(row, widths) for row in rows)
     return lines
+
+
+def _render_folder_caveats() -> list[str]:
+    return [
+        "Caveats:",
+        "- Gmail-style labels are reported as mailboxes; one message can appear in multiple",
+        "  labels, so summed mailbox sizes can exceed account storage or quota.",
+        "- Messages marked \\Deleted may still count until the mailbox is expunged; the",
+        "  report reflects what the server returns at scan time.",
+    ]
 
 
 def _format_row(row: tuple[str, ...], widths: list[int]) -> str:

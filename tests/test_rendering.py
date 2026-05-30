@@ -39,6 +39,25 @@ def test_render_table_includes_quota_folders_and_errors() -> None:
     assert "Archive [folder]: EXAMINE failed" in table
 
 
+def test_render_table_sorts_folders_by_size_and_includes_caveats() -> None:
+    report = AccountReport(
+        folders=[
+            FolderReport("Small", 1, 10, "rfc822-size"),
+            FolderReport("Large", 2, 200, "status-size"),
+            FolderReport("Medium", 3, 100, "rfc822-size"),
+        ],
+        quota=None,
+        capabilities=[],
+        errors=[],
+    )
+
+    table = render_table(report)
+
+    assert table.index("Large") < table.index("Medium") < table.index("Small")
+    assert "Gmail-style labels are reported as mailboxes" in table
+    assert "Messages marked \\Deleted may still count until the mailbox is expunged" in table
+
+
 def test_render_json_matches_report_schema() -> None:
     report = AccountReport(
         folders=[FolderReport("INBOX", 2, 30, "rfc822-size")],
