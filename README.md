@@ -138,31 +138,41 @@ messages not matched by the current run.
 
 ## Development
 
+Requires [uv](https://docs.astral.sh/uv/). Run `uv sync --dev` to install dependencies.
+
+<details>
+<summary>Commands</summary>
+
 ```bash
-uv sync --dev               # Install dependencies
-uv run ruff check .         # Lint
+uv sync --dev                # Install dependencies
+uv run ruff check .          # Lint
 uv run ruff format --check . # Check formatting
-uv run mypy .               # Type check
-uv run pytest               # Run tests
+uv run mypy .                # Type check
+uv run pytest                # Run tests
 ```
 
-### VS Code
+</details>
+
+<details>
+<summary>VS Code</summary>
 
 This repository includes VS Code tasks and launch configurations for the local `uv` workflow.
 
 **Useful tasks:**
 
-- `uv: sync` - Install dependencies
-- `uv: check all` - Lint, format check, and type check
-- `uv: pytest` - Run tests
-- `uv: build package` - Build a wheel distribution in `dist/`
-- `imap-cleanup: folders` - Run the `folders` command with interactive prompts for credentials
-- `imap-cleanup: folders json` - Run the `folders` command with JSON output and interactive prompts for credentials
+- `uv: sync` — Install dependencies
+- `uv: check all` — Lint, format check, and type check
+- `uv: pytest` — Run tests
+- `uv: build package` — Build a wheel distribution in `dist/`
+- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
 
 **Debug launch configurations:**
 
-- `imap-cleanup: folders` - Run the `folders` command with interactive prompts for credentials
-- `imap-cleanup: folders json` - Run the `folders` command with JSON output and interactive prompts for credentials
+- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
+
+</details>
 
 ## License
 
