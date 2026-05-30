@@ -3,13 +3,9 @@
 [![Version][version-badge]][latest-release]
 [![CI][ci-badge]][ci-workflow]
 
-`imap-cleanup` is a personal IMAP CLI for mailbox reporting and cleanup. It can
-list folder sizes, show account quota when available, dry-run cleanup searches,
+`imap-cleanup` is a IMAP CLI for mailbox reporting and cleanup. It can
+list folder sizes, show account quotas, dry-run cleanup searches,
 mark matched messages `\Deleted`, and expunge them when requested.
-
-This repository is public so it can be cloned, forked, and run locally. The tool
-is not published to PyPI and does not include Python package registry publishing
-configuration.
 
 ## Requirements
 
