@@ -70,14 +70,11 @@ If the server supports `STATUS=SIZE`, folder sizes are queried directly.
 Otherwise the CLI opens each folder and sums each message's `RFC822.SIZE`. If
 `QUOTA` is available, it also fetches `GETQUOTAROOT` and shows quota usage.
 
-A few things worth knowing:
+A few things worth noting:
 
-- Folder size is raw bytes, so base64-encoded attachments count roughly one
-  third larger than the original file.
-- Gmail-style labels can cause the same message to be counted in multiple
-  mailboxes.
-- Messages marked `\Deleted` may keep counting toward folder size until the
-  mailbox is expunged.
+- Folder size is raw bytes, so base64-encoded attachments count roughly one third larger than the original file.
+- [Gmail-style labels](https://support.google.com/mail/answer/118708) can cause the same message to be counted in multiple mailboxes.
+- Messages marked `\Deleted` may keep counting toward folder size until the [mailbox is expunged](#delete).
 
 ## Delete
 
