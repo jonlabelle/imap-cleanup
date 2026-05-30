@@ -23,7 +23,7 @@ uv run imap-cleanup folders \
   --password "$APP_PASSWORD"
 ```
 
-Credentials can also be supplied through environment variables:
+You can also pass credentials through environment variables:
 
 ```bash
 export IMAP_CLEANUP_HOST=imap.example.com
@@ -46,9 +46,8 @@ IMAP_CLEANUP_USERNAME=user@example.com
 IMAP_CLEANUP_PASSWORD=replace-with-an-app-password
 ```
 
-The `.env` file is git-ignored. The CLI loads it automatically from the current
-directory. Existing shell environment variables are not overwritten, and
-command-line flags take precedence over both.
+The `.env` file is git-ignored and loaded automatically. Shell environment
+variables won't be overwritten, and command-line flags always win.
 
 **Common flags:**
 
@@ -67,25 +66,24 @@ Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
 INBOX    12,440    5,153,960,755  4.8 GiB  status-size
 ```
 
-When the server advertises `STATUS=SIZE`, folder sizes are queried directly.
-Otherwise the CLI opens each folder and sums each message's `RFC822.SIZE`. When
-`QUOTA` is advertised, the command also requests `GETQUOTAROOT` and displays
-quota usage if the server returns it.
+If the server supports `STATUS=SIZE`, folder sizes are queried directly.
+Otherwise the CLI opens each folder and sums each message's `RFC822.SIZE`. If
+`QUOTA` is available, it also fetches `GETQUOTAROOT` and shows quota usage.
 
-A few things to keep in mind:
+A few things worth knowing:
 
-- Folder size is measured in raw bytes, so base64-encoded attachments count
-  roughly one third larger than the original file.
+- Folder size is raw bytes, so base64-encoded attachments count roughly one
+  third larger than the original file.
 - Gmail-style labels can cause the same message to be counted in multiple
   mailboxes.
-- Messages marked `\Deleted` may continue to count toward folder size until
-  the mailbox is expunged.
+- Messages marked `\Deleted` may keep counting toward folder size until the
+  mailbox is expunged.
 
 ## Delete
 
-The `delete` command targets a single mailbox and runs as a dry run by default.
-It prints how many messages match, their total size, and a sample of affected
-UIDs without changing anything:
+The `delete` command targets a single mailbox and is a dry run by default. It
+shows how many messages match, their total size, and a sample of affected UIDs
+without touching anything:
 
 ```bash
 uv run imap-cleanup delete \
@@ -94,24 +92,24 @@ uv run imap-cleanup delete \
   --larger-than 25MiB
 ```
 
-Pass `--preview` to see a capped list of the affected messages. Preview fetches
-UID, `Date`, `From`, `Subject`, and `RFC822.SIZE` for the first matched UIDs
-using `BODY.PEEK`. Use `--preview-limit` to control how many are shown
-(default: 10). Add `--format json` for JSON output.
+Add `--preview` to see a list of the actual messages that would be affected.
+It fetches UID, `Date`, `From`, `Subject`, and `RFC822.SIZE` for the first
+matched UIDs using `BODY.PEEK`. Use `--preview-limit` to control how many are
+shown (default: 10), and `--format json` for JSON output.
 
-At least one selector is required. Selector rules:
+At least one selector is required:
 
 - `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and
   can be combined with each other and size filters.
 - `--larger-than SIZE` and `--smaller-than SIZE` filter by `RFC822.SIZE`.
 - When both date or both size bounds are provided, the lower bound must be
   below the upper bound.
-- `--all` matches all messages before applying size filters and cannot be
-  combined with date selectors.
+- `--all` matches everything before applying size filters and can't be combined
+  with date selectors.
 - `--limit N` caps how many matching messages are affected.
 
-To apply deletions, pass `--execute`. This marks matching messages with the
-IMAP `\Deleted` flag:
+When you're ready to actually delete, pass `--execute`. This marks matching
+messages with the IMAP `\Deleted` flag:
 
 ```bash
 uv run imap-cleanup delete \
@@ -120,8 +118,8 @@ uv run imap-cleanup delete \
   --execute
 ```
 
-To permanently remove the messages in the same run, add `--expunge`. When the
-server supports `UIDPLUS`, only the matched UIDs are expunged:
+To permanently remove them in the same run, add `--expunge`. If the server
+supports `UIDPLUS`, only the matched UIDs are expunged:
 
 ```bash
 uv run imap-cleanup delete \
@@ -131,14 +129,16 @@ uv run imap-cleanup delete \
   --expunge
 ```
 
-If the server does not advertise `UIDPLUS`, the CLI refuses to expunge unless
-`--allow-folder-expunge` is also set. Folder-wide expunge permanently removes
-every message already marked `\Deleted` in the selected folder, including
-messages not matched by the current run.
+If `UIDPLUS` isn't available, the CLI won't expunge unless you also pass
+`--allow-folder-expunge`. Be careful with that one -- folder-wide expunge
+permanently removes every message already marked `\Deleted` in the folder,
+not just the ones from the current run.
 
 ## Development
 
-Requires [uv](https://docs.astral.sh/uv/). Run `uv sync --dev` to install dependencies.
+Requires [uv](https://docs.astral.sh/uv/). Simply run `uv sync --dev` to install dependencies and get started.
+
+The CLI is built on [imaplib](https://docs.python.org/3/library/imaplib.html) and [argparse](https://docs.python.org/3/library/argparse.html) from the standard library.
 
 <details>
 <summary>Commands</summary>
