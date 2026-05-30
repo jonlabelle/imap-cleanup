@@ -7,7 +7,7 @@
 
 ## Requirements
 
-- Python (see [.python-version](.python-version))
+- Python (see [version](.python-version))
 - [uv](https://docs.astral.sh/uv/)
 - An IMAP account. App-specific passwords are recommended when your provider supports them.
 
@@ -16,6 +16,7 @@
 ```bash
 git clone https://github.com/jonlabelle/imap-cleanup.git
 cd imap-cleanup
+
 uv sync --dev
 uv run imap-cleanup folders \
   --host imap.example.com \
@@ -59,11 +60,21 @@ variables won't be overwritten, and command-line flags always win.
 
 The `folders` command lists all selectable mailboxes sorted by size:
 
-```text
+```console
+$ uv run imap-cleanup folders
+
+Quota root "": STORAGE 14.0 GiB / 25.0 GiB
+
 Mailbox  Messages  Size bytes     Size     Method
 -------  --------  -------------  -------  -----------
 Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
 INBOX    12,440    5,153,960,755  4.8 GiB  status-size
+
+Caveats:
+- Gmail-style labels are reported as mailboxes; one message can appear in multiple
+  labels, so summed mailbox sizes can exceed account storage or quota.
+- Messages marked \Deleted may still count until the mailbox is expunged; the
+  report reflects what the server returns at scan time.
 ```
 
 If the server supports `STATUS=SIZE`, folder sizes are queried directly.
@@ -82,11 +93,23 @@ The `delete` command targets a single mailbox and is a dry run by default. It
 shows how many messages match, their total size, and a sample of affected UIDs
 without touching anything:
 
-```bash
-uv run imap-cleanup delete \
-  --mailbox Archive \
-  --before 2025-01-01 \
-  --larger-than 25MiB
+```console
+$ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --larger-than 25MiB
+
+Mailbox              Archive
+Mode                 dry-run
+Criteria             BEFORE 01-Jan-2025
+Messages in mailbox  5,842
+Search matches       3,217
+Filter matches       189
+Affected messages    189
+Affected size        6.8 GiB
+Marked deleted       0
+Expunged             0
+Expunge method       none
+UID sample           1042, 2187, 3304, 4521, 5678
+
+Pass --execute to mark these messages \Deleted.
 ```
 
 Add `--preview` to see a list of the actual messages that would be affected.
@@ -96,23 +119,33 @@ shown (default: 10), and `--format json` for JSON output.
 
 At least one selector is required:
 
-- `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and
-  can be combined with each other and size filters.
+- `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and can be combined with each other and size filters.
 - `--larger-than SIZE` and `--smaller-than SIZE` filter by `RFC822.SIZE`.
-- When both date or both size bounds are provided, the lower bound must be
-  below the upper bound.
-- `--all` matches everything before applying size filters and can't be combined
-  with date selectors.
+- When both date or both size bounds are provided, the lower bound must be below the upper bound.
+- `--all` matches everything before applying size filters and can't be combined with date selectors.
 - `--limit N` caps how many matching messages are affected.
 
 When you're ready to actually delete, pass `--execute`. This marks matching
 messages with the IMAP `\Deleted` flag:
 
-```bash
-uv run imap-cleanup delete \
-  --mailbox Archive \
-  --before 2025-01-01 \
-  --execute
+```console
+$ uv run imap-cleanup delete \
+    --mailbox Archive \
+    --before 2025-01-01 \
+    --execute
+
+Mailbox              Archive
+Mode                 execute
+Criteria             BEFORE 01-Jan-2025
+Messages in mailbox  5,842
+Search matches       3,217
+Filter matches       3,217
+Affected messages    3,217
+Affected size        9.4 GiB
+Marked deleted       3,217
+Expunged             0
+Expunge method       none
+UID sample           1042, 2187, 3304, 4521, 5678
 ```
 
 To permanently remove them in the same run, add `--expunge`. If the server
@@ -127,7 +160,7 @@ uv run imap-cleanup delete \
 ```
 
 If `UIDPLUS` isn't available, the CLI won't expunge unless you also pass
-`--allow-folder-expunge`. Be careful with that one -- folder-wide expunge
+`--allow-folder-expunge`. Be careful with that one, folder-wide expunge
 permanently removes every message already marked `\Deleted` in the folder,
 not just the ones from the current run.
 
