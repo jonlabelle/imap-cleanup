@@ -18,7 +18,9 @@
   "cSpell.words": [
     "autobuild",
     "debugpy",
+    "GETQUOTAROOT",
     "mypy",
-    "pytest"
+    "pytest",
+    "UIDPLUS"
   ]
 }

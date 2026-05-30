@@ -1,4 +1,4 @@
-# imap-cleanup
+# IMAP Cleanup CLI
 
 [![Version][version-badge]][latest-release]
 [![CI][ci-badge]][ci-workflow]
@@ -13,7 +13,7 @@ configuration.
 
 ## Requirements
 
-- Python 3.13
+- Python (see [.python-version](.python-version))
 - [uv](https://docs.astral.sh/uv/)
 - An IMAP account. App-specific passwords are recommended when your provider
   supports them.
@@ -59,7 +59,7 @@ current project directory before reading `IMAP_CLEANUP_*` values. Existing shell
 environment variables are not overwritten, and command-line flags take
 precedence over both.
 
-Common flags:
+**Common flags:**
 
 - `--port`, or `IMAP_CLEANUP_PORT`, defaults to `993`
 - `--ssl` / `--no-ssl`, defaults to SSL enabled
@@ -152,11 +152,11 @@ Important notes:
 ## Development
 
 ```bash
-uv sync --dev
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy .
-uv run pytest
+uv sync --dev # Install dependencies
+uv run ruff check . # Lint and type check
+uv run ruff format --check . # Check formatting
+uv run mypy . # Type check
+uv run pytest  # Run tests
 ```
 
 ### VS Code
@@ -164,19 +164,23 @@ uv run pytest
 This repository includes VS Code tasks and launch configurations for the local
 `uv` workflow.
 
-Useful tasks:
+**Useful tasks:**
 
-- `uv: sync`
-- `uv: check all`
-- `uv: pytest`
-- `uv: build package`
-- `imap-cleanup: folders`
-- `imap-cleanup: folders json`
+- `uv: sync` — Install dependencies
+- `uv: check all` — Lint, format check, and type check
+- `uv: pytest` — Run tests
+- `uv: build package` — Build a wheel distribution in `dist/`
+- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
 
-Debug launch configurations:
+**Debug launch configurations:**
 
-- `imap-cleanup: folders`
-- `imap-cleanup: folders json`
+- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
+
+## License
+
+[MIT License](LICENSE).
 
 [ci-badge]: https://github.com/jonlabelle/imap-cleanup/actions/workflows/ci.yml/badge.svg?branch=main
 [ci-workflow]: https://github.com/jonlabelle/imap-cleanup/actions/workflows/ci.yml
