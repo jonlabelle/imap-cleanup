@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.2.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.1.0...v1.2.0) (2026-05-30)
+
+
+### Features
+
+* enhance folder reporting with size sorting and caveat warnings ([8ce5260](https://github.com/jonlabelle/imap-cleanup/commit/8ce526083888bd86550a6f971622d3dc6ee82e9b))
+
 # [1.1.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.0.0...v1.1.0) (2026-05-29)
 
 
