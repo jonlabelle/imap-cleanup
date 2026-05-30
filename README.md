@@ -3,18 +3,15 @@
 [![Version][version-badge]][latest-release]
 [![CI][ci-badge]][ci-workflow]
 
-`imap-cleanup` is a IMAP CLI for mailbox reporting and cleanup. It can
-list folder sizes, show account quotas, dry-run cleanup searches,
-mark matched messages `\Deleted`, and expunge them when requested.
+> `imap-cleanup` is a command-line tool for inspecting and cleaning up IMAP mailboxes. It reports folder sizes and account quotas, and can find and delete messages by date or size.
 
 ## Requirements
 
 - Python (see [.python-version](.python-version))
 - [uv](https://docs.astral.sh/uv/)
-- An IMAP account. App-specific passwords are recommended when your provider
-  supports them.
+- An IMAP account. App-specific passwords are recommended when your provider supports them.
 
-## Install and run from a clone
+## Install
 
 ```bash
 git clone https://github.com/jonlabelle/imap-cleanup.git
@@ -36,8 +33,7 @@ export IMAP_CLEANUP_PASSWORD="$APP_PASSWORD"
 uv run imap-cleanup folders
 ```
 
-You can also use a local `.env` file. Start from the sample file and fill in
-your account details:
+Or use a local `.env` file. Copy the sample and fill in your account details:
 
 ```bash
 cp .env.example .env
@@ -50,10 +46,9 @@ IMAP_CLEANUP_USERNAME=user@example.com
 IMAP_CLEANUP_PASSWORD=replace-with-an-app-password
 ```
 
-The `.env` file is ignored by git. The CLI loads it automatically from the
-current project directory before reading `IMAP_CLEANUP_*` values. Existing shell
-environment variables are not overwritten, and command-line flags take
-precedence over both.
+The `.env` file is git-ignored. The CLI loads it automatically from the current
+directory. Existing shell environment variables are not overwritten, and
+command-line flags take precedence over both.
 
 **Common flags:**
 
@@ -61,11 +56,36 @@ precedence over both.
 - `--ssl` / `--no-ssl`, defaults to SSL enabled
 - `--format table|json`, defaults to `table`
 
-## Delete messages
+## Folders
 
-The `delete` command targets a single mailbox and defaults to a dry run. It
-prints how many messages match, their total size, and a sample of affected UIDs
-without changing the account:
+The `folders` command lists all selectable mailboxes sorted by size:
+
+```text
+Mailbox  Messages  Size bytes     Size     Method
+-------  --------  -------------  -------  -----------
+Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
+INBOX    12,440    5,153,960,755  4.8 GiB  status-size
+```
+
+When the server advertises `STATUS=SIZE`, folder sizes are queried directly.
+Otherwise the CLI opens each folder and sums each message's `RFC822.SIZE`. When
+`QUOTA` is advertised, the command also requests `GETQUOTAROOT` and displays
+quota usage if the server returns it.
+
+A few things to keep in mind:
+
+- Folder size is measured in raw bytes, so base64-encoded attachments count
+  roughly one third larger than the original file.
+- Gmail-style labels can cause the same message to be counted in multiple
+  mailboxes.
+- Messages marked `\Deleted` may continue to count toward folder size until
+  the mailbox is expunged.
+
+## Delete
+
+The `delete` command targets a single mailbox and runs as a dry run by default.
+It prints how many messages match, their total size, and a sample of affected
+UIDs without changing anything:
 
 ```bash
 uv run imap-cleanup delete \
@@ -74,44 +94,23 @@ uv run imap-cleanup delete \
   --larger-than 25MiB
 ```
 
-Pass `--preview` to include a capped list of the actual messages that would be
-affected. Preview fetches UID, `Date`, `From`, `Subject`, and `RFC822.SIZE` for
-the first affected UIDs using `BODY.PEEK`:
+Pass `--preview` to see a capped list of the affected messages. Preview fetches
+UID, `Date`, `From`, `Subject`, and `RFC822.SIZE` for the first matched UIDs
+using `BODY.PEEK`. Use `--preview-limit` to control how many are shown
+(default: 10). Add `--format json` for JSON output.
 
-```bash
-uv run imap-cleanup delete \
-  --mailbox Archive \
-  --before 2025-01-01 \
-  --larger-than 25MiB \
-  --preview \
-  --preview-limit 20
-```
-
-Preview output is also available as JSON:
-
-```bash
-uv run imap-cleanup delete \
-  --mailbox Archive \
-  --before 2025-01-01 \
-  --preview \
-  --format json
-```
-
-The command requires at least one selector. Selector rules:
+At least one selector is required. Selector rules:
 
 - `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and
   can be combined with each other and size filters.
 - `--larger-than SIZE` and `--smaller-than SIZE` filter by `RFC822.SIZE`.
-- When both date or size bounds are used, the lower bound must be below the
-  upper bound.
-- Size-only filters search the whole folder first.
-- `--all` searches the whole folder first and cannot be combined with date
-  selectors.
+- When both date or both size bounds are provided, the lower bound must be
+  below the upper bound.
+- `--all` matches all messages before applying size filters and cannot be
+  combined with date selectors.
 - `--limit N` caps how many matching messages are affected.
-- `--preview-limit N` caps how many affected message summaries `--preview`
-  fetches, defaulting to 10.
 
-To apply the deletion, pass `--execute`. This marks matching messages with the
+To apply deletions, pass `--execute`. This marks matching messages with the
 IMAP `\Deleted` flag:
 
 ```bash
@@ -121,10 +120,8 @@ uv run imap-cleanup delete \
   --execute
 ```
 
-Messages marked `\Deleted` are not always permanently removed until expunged. To
-permanently remove the messages in the same run, pass `--execute` and
-`--expunge`. When the server supports `UIDPLUS`, the CLI uses UID-scoped expunge
-so only the matched UIDs are expunged:
+To permanently remove the messages in the same run, add `--expunge`. When the
+server supports `UIDPLUS`, only the matched UIDs are expunged:
 
 ```bash
 uv run imap-cleanup delete \
@@ -134,70 +131,38 @@ uv run imap-cleanup delete \
   --expunge
 ```
 
-If the server does not advertise `UIDPLUS`, the CLI refuses folder-wide expunge
-unless `--allow-folder-expunge` is also set. Plain folder expunge can
-permanently remove every message already marked `\Deleted` in that selected
-folder, including messages not matched by the current run.
-
-## Folder reports
-
-The `folders` command prints selectable mailboxes sorted by largest reported
-size first:
-
-```text
-Mailbox  Messages  Size bytes     Size     Method
--------  --------  -------------  -------  -----------
-Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
-INBOX    12,440    5,153,960,755  4.8 GiB  status-size
-```
-
-When the server advertises `STATUS=SIZE`, the tool asks the server for folder
-sizes directly. If direct size lookup is unavailable or fails, it opens each
-folder and sums each message's `RFC822.SIZE`.
-
-When the server advertises `QUOTA`, the command also tries `GETQUOTAROOT` and
-shows quota usage if the server returns it.
-
-Important notes:
-
-- Folder size includes the raw email, including encoded attachments.
-- Base64-encoded attachments can count about one third larger than the original
-  file.
-- The table output always warns that Gmail-style labels can double-count the
-  same message across mailboxes.
-- The table output always warns that messages marked `\Deleted` may continue to
-  count until the mailbox is expunged.
-- `STATUS=SIZE` and `QUOTA` are optional IMAP extensions. The CLI falls back to
-  `RFC822.SIZE` per message when folder size is not available directly.
+If the server does not advertise `UIDPLUS`, the CLI refuses to expunge unless
+`--allow-folder-expunge` is also set. Folder-wide expunge permanently removes
+every message already marked `\Deleted` in the selected folder, including
+messages not matched by the current run.
 
 ## Development
 
 ```bash
-uv sync --dev # Install dependencies
-uv run ruff check . # Lint and type check
+uv sync --dev               # Install dependencies
+uv run ruff check .         # Lint
 uv run ruff format --check . # Check formatting
-uv run mypy . # Type check
-uv run pytest  # Run tests
+uv run mypy .               # Type check
+uv run pytest               # Run tests
 ```
 
 ### VS Code
 
-This repository includes VS Code tasks and launch configurations for the local
-`uv` workflow.
+This repository includes VS Code tasks and launch configurations for the local `uv` workflow.
 
 **Useful tasks:**
 
-- `uv: sync` — Install dependencies
-- `uv: check all` — Lint, format check, and type check
-- `uv: pytest` — Run tests
-- `uv: build package` — Build a wheel distribution in `dist/`
-- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
-- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
+- `uv: sync` - Install dependencies
+- `uv: check all` - Lint, format check, and type check
+- `uv: pytest` - Run tests
+- `uv: build package` - Build a wheel distribution in `dist/`
+- `imap-cleanup: folders` - Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` - Run the `folders` command with JSON output and interactive prompts for credentials
 
 **Debug launch configurations:**
 
-- `imap-cleanup: folders` — Run the `folders` command with interactive prompts for credentials
-- `imap-cleanup: folders json` — Run the `folders` command with JSON output and interactive prompts for credentials
+- `imap-cleanup: folders` - Run the `folders` command with interactive prompts for credentials
+- `imap-cleanup: folders json` - Run the `folders` command with JSON output and interactive prompts for credentials
 
 ## License
 
