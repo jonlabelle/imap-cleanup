@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.2.0...v1.3.0) (2026-05-30)
+
+
+### Features
+
+* add message preview functionality to delete command ([9516848](https://github.com/jonlabelle/imap-cleanup/commit/95168487784df4261189389ae60f682633bad478))
+
 # [1.2.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.1.0...v1.2.0) (2026-05-30)
 
 
