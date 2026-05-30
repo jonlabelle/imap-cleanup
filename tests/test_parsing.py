@@ -1,6 +1,7 @@
 from imap_cleanup.models import QuotaReport
 from imap_cleanup.parsing import (
     parse_capabilities,
+    parse_fetch_message_summaries,
     parse_fetch_size_by_uid,
     parse_fetch_sizes,
     parse_list_response,
@@ -73,6 +74,27 @@ def test_parse_fetch_size_by_uid_maps_sizes() -> None:
     )
 
     assert sizes == {101: 10, 102: 25}
+
+
+def test_parse_fetch_message_summaries_reads_headers_and_metadata() -> None:
+    summaries = parse_fetch_message_summaries(
+        [
+            (
+                b"1 (UID 101 RFC822.SIZE 2048 BODY[HEADER.FIELDS (DATE FROM SUBJECT)] {120}",
+                b"Date: Wed, 01 Jan 2025 12:00:00 +0000\r\n"
+                b"From: Sender <sender@example.com>\r\n"
+                b"Subject: =?utf-8?q?Quarterly_report?=\r\n\r\n",
+            ),
+            b")",
+        ]
+    )
+
+    assert len(summaries) == 1
+    assert summaries[0].uid == 101
+    assert summaries[0].date == "Wed, 01 Jan 2025 12:00:00 +0000"
+    assert summaries[0].from_header == "Sender <sender@example.com>"
+    assert summaries[0].subject == "Quarterly report"
+    assert summaries[0].size_bytes == 2048
 
 
 def test_parse_uid_search_response_reads_uids() -> None:

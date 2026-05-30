@@ -111,6 +111,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Limit how many matching messages are marked deleted.",
     )
     delete.add_argument(
+        "--preview",
+        action="store_true",
+        help="Fetch and show a capped list of affected message summaries.",
+    )
+    delete.add_argument(
+        "--preview-limit",
+        type=_positive_int,
+        default=10,
+        help="Limit how many affected message summaries --preview fetches. Defaults to 10.",
+    )
+    delete.add_argument(
         "--execute",
         action="store_true",
         help="Actually mark matching messages \\Deleted. Without this, delete is a dry run.",
@@ -163,6 +174,8 @@ def _run_delete(args: argparse.Namespace) -> int:
         larger_than=args.larger_than,
         smaller_than=args.smaller_than,
         limit=args.limit,
+        preview=bool(args.preview),
+        preview_limit=args.preview_limit,
         execute=bool(args.execute),
         expunge=bool(args.expunge),
         allow_folder_expunge=bool(args.allow_folder_expunge),

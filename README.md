@@ -78,6 +78,29 @@ uv run imap-cleanup delete \
   --larger-than 25MiB
 ```
 
+Pass `--preview` to include a capped list of the actual messages that would be
+affected. Preview fetches UID, `Date`, `From`, `Subject`, and `RFC822.SIZE` for
+the first affected UIDs using `BODY.PEEK`:
+
+```bash
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --before 2025-01-01 \
+  --larger-than 25MiB \
+  --preview \
+  --preview-limit 20
+```
+
+Preview output is also available as JSON:
+
+```bash
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --before 2025-01-01 \
+  --preview \
+  --format json
+```
+
 The command requires at least one selector. Selector rules:
 
 - `--before YYYY-MM-DD` and `--since YYYY-MM-DD` use IMAP date search keys and
@@ -89,6 +112,8 @@ The command requires at least one selector. Selector rules:
 - `--all` searches the whole folder first and cannot be combined with date
   selectors.
 - `--limit N` caps how many matching messages are affected.
+- `--preview-limit N` caps how many affected message summaries `--preview`
+  fetches, defaulting to 10.
 
 To apply the deletion, pass `--execute`. This marks matching messages with the
 IMAP `\Deleted` flag:

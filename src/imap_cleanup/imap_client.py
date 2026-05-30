@@ -5,7 +5,7 @@ from __future__ import annotations
 import imaplib
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from typing import Any, Protocol, cast
 
@@ -15,12 +15,14 @@ from imap_cleanup.models import (
     DeletionReport,
     ExpungeMethod,
     FolderReport,
+    MessageSummary,
     QuotaReport,
     ReportError,
 )
 from imap_cleanup.parsing import (
     RawImapData,
     parse_capabilities,
+    parse_fetch_message_summaries,
     parse_fetch_size_by_uid,
     parse_fetch_sizes,
     parse_list_response,
@@ -87,6 +89,8 @@ class DeletionOptions:
     larger_than: int | None = None
     smaller_than: int | None = None
     limit: int | None = None
+    preview: bool = False
+    preview_limit: int = 10
     execute: bool = False
     expunge: bool = False
     allow_folder_expunge: bool = False
@@ -177,6 +181,15 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
     matched_uids = _filter_uids_by_size(searched_uids, sizes, options)
     affected_uids = matched_uids[: options.limit] if options.limit is not None else matched_uids
     warnings = _deletion_warnings(options, searched_uids, sizes)
+    preview_messages: list[MessageSummary] = []
+    if options.preview and affected_uids:
+        preview_uids = affected_uids[: options.preview_limit]
+        preview_messages = _fetch_message_summaries(client, preview_uids, sizes)
+        if len(preview_uids) < len(affected_uids):
+            warnings.append(
+                "Preview limited to first "
+                f"{len(preview_uids):,} of {len(affected_uids):,} affected messages."
+            )
 
     marked_deleted_messages = 0
     expunged_messages = 0
@@ -209,6 +222,7 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
         expunge_method=expunge_method,
         uid_sample=affected_uids[:10],
         warnings=warnings,
+        preview_messages=preview_messages,
     )
 
 
@@ -346,6 +360,50 @@ def _fetch_uid_sizes(client: ImapConnection, uids: list[int]) -> dict[int, int]:
         )
         sizes.update(parse_fetch_size_by_uid(data))
     return sizes
+
+
+def _fetch_message_summaries(
+    client: ImapConnection,
+    uids: list[int],
+    sizes: dict[int, int],
+) -> list[MessageSummary]:
+    summaries_by_uid: dict[int, MessageSummary] = {}
+    for batch in _uid_batches(uids):
+        uid_set = _uid_set(batch)
+
+        def fetch_command(uid_set: str = uid_set) -> ImapResponse:
+            return client.uid(
+                "FETCH",
+                uid_set,
+                "(UID RFC822.SIZE BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])",
+            )
+
+        data = _call(
+            "UID FETCH preview",
+            fetch_command,
+        )
+        for summary in parse_fetch_message_summaries(data):
+            summaries_by_uid[summary.uid] = _summary_with_size(summary, sizes)
+
+    return [
+        summaries_by_uid.get(
+            uid,
+            MessageSummary(
+                uid=uid,
+                date="",
+                from_header="",
+                subject="",
+                size_bytes=sizes.get(uid, 0),
+            ),
+        )
+        for uid in uids
+    ]
+
+
+def _summary_with_size(summary: MessageSummary, sizes: dict[int, int]) -> MessageSummary:
+    if summary.size_bytes or summary.uid not in sizes:
+        return summary
+    return replace(summary, size_bytes=sizes[summary.uid])
 
 
 def _filter_uids_by_size(

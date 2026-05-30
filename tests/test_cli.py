@@ -87,6 +87,9 @@ def test_delete_command_parses_selectors() -> None:
             "25MiB",
             "--limit",
             "10",
+            "--preview",
+            "--preview-limit",
+            "3",
             "--execute",
         ]
     )
@@ -96,4 +99,6 @@ def test_delete_command_parses_selectors() -> None:
     assert args.before.isoformat() == "2026-01-01"
     assert args.larger_than == 25 * 1024 * 1024
     assert args.limit == 10
+    assert args.preview is True
+    assert args.preview_limit == 3
     assert args.execute is True

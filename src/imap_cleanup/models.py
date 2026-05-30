@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 SizeMethod = Literal["status-size", "rfc822-size"]
@@ -63,6 +63,15 @@ class AccountReport:
 
 
 @dataclass(frozen=True)
+class MessageSummary:
+    uid: int
+    date: str
+    from_header: str
+    subject: str
+    size_bytes: int
+
+
+@dataclass(frozen=True)
 class DeletionReport:
     mailbox: str
     mode: DeletionMode
@@ -77,3 +86,4 @@ class DeletionReport:
     expunge_method: ExpungeMethod
     uid_sample: list[int]
     warnings: list[str]
+    preview_messages: list[MessageSummary] = field(default_factory=list)

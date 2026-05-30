@@ -23,6 +23,7 @@ class FakeImapConnection:
         select_response: ImapResponse | None = None,
         search_response: ImapResponse | None = None,
         fetch_response: ImapResponse | None = None,
+        preview_fetch_response: ImapResponse | None = None,
         store_response: ImapResponse | None = None,
         uid_expunge_response: ImapResponse | None = None,
         quota_response: ImapResponse | None = None,
@@ -41,6 +42,25 @@ class FakeImapConnection:
             [
                 b"1 (UID 101 RFC822.SIZE 10)",
                 b"2 (UID 102 RFC822.SIZE 20)",
+            ],
+        )
+        self.preview_fetch_response = preview_fetch_response or (
+            "OK",
+            [
+                (
+                    b"1 (UID 101 RFC822.SIZE 10 BODY[HEADER.FIELDS (DATE FROM SUBJECT)] {95}",
+                    b"Date: Wed, 01 Jan 2025 12:00:00 +0000\r\n"
+                    b"From: Sender One <one@example.com>\r\n"
+                    b"Subject: First\r\n\r\n",
+                ),
+                b")",
+                (
+                    b"2 (UID 102 RFC822.SIZE 20 BODY[HEADER.FIELDS (DATE FROM SUBJECT)] {96}",
+                    b"Date: Thu, 02 Jan 2025 12:00:00 +0000\r\n"
+                    b"From: Sender Two <two@example.com>\r\n"
+                    b"Subject: Second\r\n\r\n",
+                ),
+                b")",
             ],
         )
         self.store_response = store_response or ("OK", [])
@@ -84,6 +104,8 @@ class FakeImapConnection:
         self.calls.append(("uid", (command, *args)))
         if command == "SEARCH":
             return self.search_response
+        if command == "FETCH" and any(isinstance(arg, str) and "BODY.PEEK" in arg for arg in args):
+            return self.preview_fetch_response
         if command == "STORE":
             return self.store_response
         if command == "EXPUNGE":
@@ -205,6 +227,39 @@ def test_delete_dry_run_filters_by_size_without_store() -> None:
     assert report.uid_sample == [102]
     assert ("select", ('"INBOX"', True)) in client.calls
     assert ("uid", ("SEARCH", None, "ALL")) in client.calls
+    assert not any(call == "STORE" for call, _ in client.calls)
+
+
+def test_delete_dry_run_preview_fetches_capped_message_summaries_without_store() -> None:
+    client = FakeImapConnection()
+
+    report = collect_deletion_report(
+        client,
+        DeletionOptions(
+            mailbox="INBOX",
+            all_messages=True,
+            preview=True,
+            preview_limit=1,
+        ),
+    )
+
+    assert report.mode == "dry-run"
+    assert report.affected_messages == 2
+    assert len(report.preview_messages) == 1
+    assert report.preview_messages[0].uid == 101
+    assert report.preview_messages[0].date == "Wed, 01 Jan 2025 12:00:00 +0000"
+    assert report.preview_messages[0].from_header == "Sender One <one@example.com>"
+    assert report.preview_messages[0].subject == "First"
+    assert report.preview_messages[0].size_bytes == 10
+    assert "Preview limited to first 1 of 2 affected messages." in report.warnings
+    assert (
+        "uid",
+        (
+            "FETCH",
+            "101",
+            "(UID RFC822.SIZE BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])",
+        ),
+    ) in client.calls
     assert not any(call == "STORE" for call, _ in client.calls)
 
 

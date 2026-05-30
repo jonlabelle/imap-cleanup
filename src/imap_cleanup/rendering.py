@@ -9,6 +9,7 @@ from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
     FolderReport,
+    MessageSummary,
     QuotaReport,
     QuotaResource,
 )
@@ -61,6 +62,9 @@ def render_deletion_table(report: DeletionReport) -> str:
     if report.uid_sample:
         sample = ", ".join(str(uid) for uid in report.uid_sample)
         lines.append(f"{'UID sample'.ljust(width)}  {sample}")
+    if report.preview_messages:
+        lines.append("")
+        lines.extend(_render_message_preview_table(report.preview_messages))
     if report.warnings:
         lines.append("")
         lines.append("Warnings:")
@@ -109,6 +113,30 @@ def _render_folder_table(folders: list[FolderReport]) -> list[str]:
     return lines
 
 
+def _render_message_preview_table(messages: list[MessageSummary]) -> list[str]:
+    rows = [
+        (
+            str(message.uid),
+            _clip(message.date, 30),
+            _clip(message.from_header, 36),
+            _clip(message.subject, 56),
+            format_bytes(message.size_bytes),
+        )
+        for message in messages
+    ]
+    headers = ("UID", "Date", "From", "Subject", "Size")
+    widths = [
+        max(len(headers[index]), *(len(row[index]) for row in rows))
+        for index in range(len(headers))
+    ]
+
+    lines = ["Preview:"]
+    lines.append(_format_row(headers, widths))
+    lines.append(_format_row(tuple("-" * width for width in widths), widths))
+    lines.extend(_format_row(row, widths) for row in rows)
+    return lines
+
+
 def _render_folder_caveats() -> list[str]:
     return [
         "Caveats:",
@@ -121,6 +149,13 @@ def _render_folder_caveats() -> list[str]:
 
 def _format_row(row: tuple[str, ...], widths: list[int]) -> str:
     return "  ".join(value.ljust(widths[index]) for index, value in enumerate(row))
+
+
+def _clip(value: str, limit: int) -> str:
+    clean = " ".join(value.split())
+    if len(clean) <= limit:
+        return clean
+    return f"{clean[: limit - 3]}..."
 
 
 def _render_quota(quota: QuotaReport) -> str:
@@ -177,6 +212,17 @@ def _deletion_report_to_dict(report: DeletionReport) -> dict[str, Any]:
         "searched_messages": report.searched_messages,
         "selected_messages": report.selected_messages,
         "uid_sample": report.uid_sample,
+        "preview_messages": [
+            {
+                "uid": message.uid,
+                "date": message.date,
+                "from": message.from_header,
+                "subject": message.subject,
+                "size_bytes": message.size_bytes,
+                "human_size": format_bytes(message.size_bytes),
+            }
+            for message in report.preview_messages
+        ],
         "warnings": report.warnings,
     }
 

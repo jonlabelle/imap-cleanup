@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Iterator
+from email import policy
+from email.parser import BytesParser
 
-from imap_cleanup.models import QuotaReport, QuotaResource
+from imap_cleanup.models import MessageSummary, QuotaReport, QuotaResource
 
 RawImapData = bytes | str | tuple[bytes | str, bytes | str] | None
 
@@ -68,6 +70,15 @@ def parse_fetch_size_by_uid(data: Iterable[RawImapData]) -> dict[int, int]:
         if uid is not None and size is not None:
             sizes[int(uid.group(1))] = int(size.group(1))
     return sizes
+
+
+def parse_fetch_message_summaries(data: Iterable[RawImapData]) -> list[MessageSummary]:
+    summaries: list[MessageSummary] = []
+    for item in data:
+        summary = _parse_fetch_message_summary(item)
+        if summary is not None:
+            summaries.append(summary)
+    return summaries
 
 
 def parse_uid_search_response(data: Iterable[RawImapData]) -> list[int]:
@@ -145,6 +156,45 @@ def iter_response_text(data: Iterable[RawImapData]) -> Iterator[str]:
         yield _decode_response_part(item)
 
 
+def _parse_fetch_message_summary(item: RawImapData) -> MessageSummary | None:
+    if item is None:
+        return None
+    if isinstance(item, tuple):
+        metadata = _decode_response_part(item[0])
+        headers = _response_part_bytes(item[1])
+    else:
+        metadata = _decode_response_part(item)
+        headers = b""
+
+    uid_match = _FETCH_UID_RE.search(metadata)
+    if uid_match is None:
+        return None
+
+    size_match = _FETCH_SIZE_RE.search(metadata)
+    header_values = _parse_header_values(headers)
+    return MessageSummary(
+        uid=int(uid_match.group(1)),
+        date=header_values["date"],
+        from_header=header_values["from"],
+        subject=header_values["subject"],
+        size_bytes=int(size_match.group(1)) if size_match is not None else 0,
+    )
+
+
+def _parse_header_values(headers: bytes) -> dict[str, str]:
+    message = BytesParser(policy=policy.default).parsebytes(headers)
+    return {
+        "date": _message_header(message, "date"),
+        "from": _message_header(message, "from"),
+        "subject": _message_header(message, "subject"),
+    }
+
+
+def _message_header(message: object, name: str) -> str:
+    value = message.get(name, "")  # type: ignore[attr-defined]
+    return str(value) if value is not None else ""
+
+
 def _read_quoted(value: str, index: int) -> tuple[str, int]:
     chars: list[str] = []
     while index < len(value):
@@ -164,6 +214,12 @@ def _decode_response_part(part: bytes | str) -> str:
     if isinstance(part, bytes):
         return part.decode("utf-8", errors="replace")
     return part
+
+
+def _response_part_bytes(part: bytes | str) -> bytes:
+    if isinstance(part, bytes):
+        return part
+    return part.encode("utf-8", errors="replace")
 
 
 def _has_attribute(tokens: list[str], attribute: str) -> bool:

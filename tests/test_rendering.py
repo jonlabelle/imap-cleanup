@@ -4,6 +4,7 @@ from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
     FolderReport,
+    MessageSummary,
     QuotaReport,
     QuotaResource,
     ReportError,
@@ -95,12 +96,24 @@ def test_render_deletion_table_includes_action_summary() -> None:
         expunge_method="none",
         uid_sample=[101, 102],
         warnings=["Dry run only."],
+        preview_messages=[
+            MessageSummary(
+                uid=101,
+                date="Wed, 01 Jan 2025 12:00:00 +0000",
+                from_header="Sender <sender@example.com>",
+                subject="Old attachment",
+                size_bytes=2048,
+            )
+        ],
     )
 
     table = render_deletion_table(report)
 
     assert "Archive" in table
     assert "2.0 KiB" in table
+    assert "Preview:" in table
+    assert "Sender <sender@example.com>" in table
+    assert "Old attachment" in table
     assert "Pass --execute" in table
     assert "Dry run only." in table
 
@@ -120,6 +133,15 @@ def test_render_deletion_json_matches_report_schema() -> None:
         expunge_method="uid-expunge",
         uid_sample=[101],
         warnings=[],
+        preview_messages=[
+            MessageSummary(
+                uid=101,
+                date="Wed, 01 Jan 2025 12:00:00 +0000",
+                from_header="Sender <sender@example.com>",
+                subject="Old attachment",
+                size_bytes=30,
+            )
+        ],
     )
 
     payload = json.loads(render_deletion_json(report))
@@ -128,3 +150,13 @@ def test_render_deletion_json_matches_report_schema() -> None:
     assert payload["mode"] == "execute"
     assert payload["affected_human_size"] == "30 B"
     assert payload["expunge_method"] == "uid-expunge"
+    assert payload["preview_messages"] == [
+        {
+            "uid": 101,
+            "date": "Wed, 01 Jan 2025 12:00:00 +0000",
+            "from": "Sender <sender@example.com>",
+            "subject": "Old attachment",
+            "size_bytes": 30,
+            "human_size": "30 B",
+        }
+    ]
