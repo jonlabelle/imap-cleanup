@@ -19,8 +19,12 @@
     "autobuild",
     "debugpy",
     "GETQUOTAROOT",
+    "imaplib",
     "mypy",
     "pytest",
     "UIDPLUS"
-  ]
+  ],
+
+  // ms-python.vscode-pylance
+  "python.terminal.useEnvFile": true
 }
