@@ -18,11 +18,24 @@
   "cSpell.words": [
     "autobuild",
     "debugpy",
+    "delenv",
+    "dotenv",
     "GETQUOTAROOT",
+    "htmlcov",
+    "IMAP",
     "imaplib",
+    "keepends",
+    "KMGT",
     "mypy",
+    "Noselect",
+    "nosetests",
+    "pycache",
+    "pyproject",
     "pytest",
-    "UIDPLUS"
+    "UIDPLUS",
+    "uids",
+    "usecwd",
+    "venv"
   ],
 
   // ms-python.vscode-pylance
