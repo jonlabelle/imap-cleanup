@@ -32,6 +32,7 @@
     "pycache",
     "pyproject",
     "pytest",
+    "QUOTAROOT",
     "UIDPLUS",
     "uids",
     "usecwd",

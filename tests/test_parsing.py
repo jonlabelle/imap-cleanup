@@ -111,3 +111,15 @@ def test_parse_quota_response_extracts_storage_resource() -> None:
     assert quota.resources[0].limit == 1048576
     assert quota.resources[0].usage_bytes == 742400000
     assert quota.resources[1].name == "MESSAGE"
+
+
+def test_parse_quota_response_handles_nested_list_format() -> None:
+    # Python 3.14+ imaplib.getquotaroot returns nested lists:
+    # (typ, [[QUOTAROOT responses...], [QUOTA responses]])
+    quota = parse_quota_response([[b'INBOX ""'], [b'"" (STORAGE 725000 1048576)']])
+
+    assert isinstance(quota, QuotaReport)
+    assert quota.root == ""
+    assert quota.resources[0].name == "STORAGE"
+    assert quota.resources[0].usage == 725000
+    assert quota.resources[0].limit == 1048576

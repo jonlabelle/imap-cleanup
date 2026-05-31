@@ -6,11 +6,12 @@ import re
 from collections.abc import Iterable, Iterator
 from email import policy
 from email.parser import BytesParser
+from typing import Any
 
 from imap_cleanup.models import MessageSummary, QuotaReport, QuotaResource
 
 _RawPart = bytes | bytearray | memoryview | str
-RawImapData = _RawPart | tuple[_RawPart, _RawPart] | None
+RawImapData = _RawPart | tuple[_RawPart, _RawPart] | list[Any] | None
 
 _FETCH_SIZE_RE = re.compile(r"\bRFC822\.SIZE\s+(\d+)\b", re.IGNORECASE)
 _FETCH_UID_RE = re.compile(r"\bUID\s+(\d+)\b", re.IGNORECASE)
@@ -148,17 +149,19 @@ def tokenize_imap(value: str) -> list[str]:
 def iter_response_text(data: Iterable[RawImapData]) -> Iterator[str]:
     for item in data:
         if item is None:
-            continue
-        if isinstance(item, tuple):
+            pass
+        elif isinstance(item, list):
+            yield from iter_response_text(item)
+        elif isinstance(item, tuple):
             parts = [_decode_response_part(part) for part in item if part]
             if parts:
                 yield " ".join(parts)
-            continue
-        yield _decode_response_part(item)
+        else:
+            yield _decode_response_part(item)
 
 
 def _parse_fetch_message_summary(item: RawImapData) -> MessageSummary | None:
-    if item is None:
+    if item is None or isinstance(item, list):
         return None
     if isinstance(item, tuple):
         metadata = _decode_response_part(item[0])
