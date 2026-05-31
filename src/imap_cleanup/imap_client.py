@@ -44,31 +44,31 @@ class ImapOperationError(ImapCleanupError):
 
 
 class ImapConnection(Protocol):
-    def login(self, user: str, password: str) -> ImapResponse: pass
+    def login(self, user: str, password: str) -> ImapResponse: ...
 
-    def logout(self) -> ImapResponse: pass
+    def logout(self) -> ImapResponse: ...
 
-    def capability(self) -> ImapResponse: pass
+    def capability(self) -> ImapResponse: ...
 
-    def list(self) -> ImapResponse: pass
+    def list(self) -> ImapResponse: ...
 
-    def status(self, mailbox: str, names: str) -> ImapResponse: pass
+    def status(self, mailbox: str, names: str) -> ImapResponse: ...
 
     def select(
         self,
         mailbox: str = "INBOX",
         readonly: bool = False,
-    ) -> ImapResponse: pass
+    ) -> ImapResponse: ...
 
     def uid(
         self,
         command: str,
         *args: str | None,
-    ) -> ImapResponse: pass
+    ) -> ImapResponse: ...
 
-    def getquotaroot(self, mailbox: str) -> ImapResponse: pass
+    def getquotaroot(self, mailbox: str) -> ImapResponse: ...
 
-    def expunge(self) -> ImapResponse: pass
+    def expunge(self) -> ImapResponse: ...
 
 
 @dataclass(frozen=True)
