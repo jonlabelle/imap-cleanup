@@ -18,6 +18,14 @@
       "problemMatcher": []
     },
     {
+      "label": "uv: ruff format",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "ruff", "format", "."],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
       "label": "uv: ruff format check",
       "type": "shell",
       "command": "uv",
