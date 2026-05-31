@@ -9,7 +9,8 @@ from email.parser import BytesParser
 
 from imap_cleanup.models import MessageSummary, QuotaReport, QuotaResource
 
-RawImapData = bytes | str | tuple[bytes | str, bytes | str] | None
+_RawPart = bytes | bytearray | memoryview | str
+RawImapData = _RawPart | tuple[_RawPart, _RawPart] | None
 
 _FETCH_SIZE_RE = re.compile(r"\bRFC822\.SIZE\s+(\d+)\b", re.IGNORECASE)
 _FETCH_UID_RE = re.compile(r"\bUID\s+(\d+)\b", re.IGNORECASE)
@@ -210,15 +211,15 @@ def _read_quoted(value: str, index: int) -> tuple[str, int]:
     return "".join(chars), index
 
 
-def _decode_response_part(part: bytes | str) -> str:
-    if isinstance(part, bytes):
-        return part.decode("utf-8", errors="replace")
+def _decode_response_part(part: _RawPart) -> str:
+    if isinstance(part, (bytes, bytearray, memoryview)):
+        return bytes(part).decode("utf-8", errors="replace")
     return part
 
 
-def _response_part_bytes(part: bytes | str) -> bytes:
-    if isinstance(part, bytes):
-        return part
+def _response_part_bytes(part: _RawPart) -> bytes:
+    if isinstance(part, (bytes, bytearray, memoryview)):
+        return bytes(part)
     return part.encode("utf-8", errors="replace")
 
 
