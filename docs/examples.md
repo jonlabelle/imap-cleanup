@@ -12,32 +12,13 @@
 
 ## Connection setup
 
-### Pass credentials as flags
-
-```bash
-uv run imap-cleanup folders \
-  --host imap.example.com \
-  --username user@example.com \
-  --password "$APP_PASSWORD"
-```
-
-### Pass credentials through the environment
-
-```bash
-export IMAP_CLEANUP_HOST=imap.example.com
-export IMAP_CLEANUP_USERNAME=user@example.com
-export IMAP_CLEANUP_PASSWORD="$APP_PASSWORD"
-
-uv run imap-cleanup folders
-```
-
-### Use a .env file
+Copy the sample and fill in your account details:
 
 ```console
 cp .env.example .env
 ```
 
-Edit `.env` with your account details. It's loaded automatically and shell environment variables always take precedence. See [Configuration](configuration.md) for the full precedence rules.
+Edit `.env` with your account details. It's loaded automatically. See [Configuration](configuration.md) for environment variables, CLI flags, and precedence rules.
 
 ---
 

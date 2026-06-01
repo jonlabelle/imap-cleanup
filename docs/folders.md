@@ -13,10 +13,7 @@
 The `folders` command connects to your account and lists every selectable mailbox sorted by size descending.
 
 ```bash
-uv run imap-cleanup folders \
-  --host imap.example.com \
-  --username user@example.com \
-  --password "$APP_PASSWORD"
+uv run imap-cleanup folders
 ```
 
 ## Output

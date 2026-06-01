@@ -26,13 +26,10 @@ uv sync --dev
 List all mailboxes sorted by size:
 
 ```bash
-uv run imap-cleanup folders \
-  --host imap.example.com \
-  --username user@example.com \
-  --password "$APP_PASSWORD"
+uv run imap-cleanup folders
 ```
 
-> Credentials can also come from environment variables or a `.env` file. See [Configuration](docs/configuration.md) for the full details.
+> Credentials are loaded from a `.env` file or environment variables. See [Configuration](docs/configuration.md) for setup details.
 
 ## Commands
 
