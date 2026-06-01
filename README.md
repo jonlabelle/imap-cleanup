@@ -49,6 +49,7 @@ The CLI is built on [imaplib](https://docs.python.org/3/library/imaplib.html) an
 
 ```bash
 uv sync --dev                # Install dependencies
+uv build                     # Build wheel distribution in dist/
 uv run ruff check .          # Lint
 uv run ruff format --check . # Check formatting
 uv run ruff format .         # Format code
@@ -69,7 +70,7 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `uv: check all` — Lint, format check, type check, and run tests
 - `uv: pytest` — Run tests
 - `uv: ruff format` — Format code with Ruff
-- `uv: build package` — Build a wheel distribution in `dist/`
+- `uv: build package` — Build wheel distribution in `dist/`
 - `imap-cleanup: folders` — Run the `folders` command
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
 
