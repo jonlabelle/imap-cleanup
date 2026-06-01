@@ -10,6 +10,12 @@
 
 # Examples
 
+CLI usage examples for common `imap-cleanup` workflows.
+
+- [Connection setup](#connection-setup)
+- [Folders](#folders)
+- [Delete](#delete)
+
 ## Connection setup
 
 Copy the sample and fill in your account details:
