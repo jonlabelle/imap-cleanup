@@ -117,6 +117,7 @@ def test_delete_folder_command_parses_execution_flags() -> None:
             "--mailbox",
             "Old Projects",
             "--execute",
+            "--recursive",
             "--format",
             "json",
         ]
@@ -125,4 +126,5 @@ def test_delete_folder_command_parses_execution_flags() -> None:
     assert args.command == "delete-folder"
     assert args.mailbox == "Old Projects"
     assert args.execute is True
+    assert args.recursive is True
     assert args.format == "json"

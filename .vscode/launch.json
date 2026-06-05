@@ -89,6 +89,22 @@
       "console": "integratedTerminal",
       "justMyCode": true,
       "preLaunchTask": "uv: sync"
+    },
+    {
+      "name": "imap-cleanup: delete folder recursive dry run",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": [
+        "delete-folder",
+        "--mailbox",
+        "Old Projects",
+        "--recursive"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
     }
   ]
 }

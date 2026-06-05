@@ -173,6 +173,22 @@ Delete the folder and the messages stored in that folder:
 uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
 ```
 
+### Recursive dry run
+
+Check the folder and all selectable child folders before deleting anything:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive
+```
+
+### Recursive execute
+
+Delete child folders first, then the parent folder:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
+```
+
 ### JSON output
 
 ```console

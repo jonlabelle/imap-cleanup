@@ -159,6 +159,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Actually delete the mailbox/folder. Without this, delete-folder is a dry run.",
     )
+    delete_folder.add_argument(
+        "--recursive",
+        action="store_true",
+        help="Also delete selectable child mailboxes below --mailbox.",
+    )
     delete_folder.set_defaults(func=_run_delete_folder)
     return parser
 
@@ -225,6 +230,7 @@ def _run_delete_folder(args: argparse.Namespace) -> int:
     options = FolderDeletionOptions(
         mailbox=str(args.mailbox),
         execute=bool(args.execute),
+        recursive=bool(args.recursive),
     )
 
     try:

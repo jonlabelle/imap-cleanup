@@ -91,6 +91,15 @@ class DeletionReport:
 
 
 @dataclass(frozen=True)
+class FolderDeletionItem:
+    mailbox: str
+    messages: int
+    size_bytes: int | None
+    size_method: FolderDeletionSizeMethod
+    deleted: bool
+
+
+@dataclass(frozen=True)
 class FolderDeletionReport:
     mailbox: str
     mode: DeletionMode
@@ -99,3 +108,5 @@ class FolderDeletionReport:
     size_method: FolderDeletionSizeMethod
     deleted: bool
     warnings: list[str]
+    recursive: bool = False
+    mailboxes: list[FolderDeletionItem] = field(default_factory=list)

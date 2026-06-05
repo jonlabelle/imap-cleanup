@@ -8,6 +8,7 @@ from typing import Any
 from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
+    FolderDeletionItem,
     FolderDeletionReport,
     FolderReport,
     MessageSummary,
@@ -84,20 +85,30 @@ def render_folder_deletion_table(report: FolderDeletionReport) -> str:
     rows = [
         ("Mailbox", report.mailbox),
         ("Mode", report.mode),
-        ("Messages in mailbox", f"{report.messages:,}"),
-        ("Size", format_bytes(report.size_bytes) if report.size_bytes is not None else "unknown"),
-        ("Size method", report.size_method),
-        ("Deleted mailbox", "yes" if report.deleted else "no"),
+        ("Recursive", "yes" if report.recursive else "no"),
+        ("Mailboxes affected", f"{len(report.mailboxes):,}"),
+        ("Messages affected", f"{report.messages:,}"),
+        (
+            "Total size",
+            format_bytes(report.size_bytes) if report.size_bytes is not None else "unknown",
+        ),
+        ("Deleted mailboxes", "yes" if report.deleted else "no"),
     ]
     width = max(len(label) for label, _ in rows)
     lines = [f"{label.ljust(width)}  {value}" for label, value in rows]
+    if report.mailboxes:
+        lines.append("")
+        lines.extend(_render_folder_deletion_mailbox_table(report.mailboxes))
     if report.warnings:
         lines.append("")
         lines.append("Warnings:")
         lines.extend(f"- {warning}" for warning in report.warnings)
     if report.mode == "dry-run":
         lines.append("")
-        lines.append("Pass --execute to delete this mailbox and all messages it contains.")
+        if report.recursive:
+            lines.append("Pass --execute to delete these mailboxes and all messages they contain.")
+        else:
+            lines.append("Pass --execute to delete this mailbox and all messages it contains.")
     return "\n".join(lines)
 
 
@@ -157,6 +168,30 @@ def _render_message_preview_table(messages: list[MessageSummary]) -> list[str]:
     ]
 
     lines = ["Preview:"]
+    lines.append(_format_row(headers, widths))
+    lines.append(_format_row(tuple("-" * width for width in widths), widths))
+    lines.extend(_format_row(row, widths) for row in rows)
+    return lines
+
+
+def _render_folder_deletion_mailbox_table(mailboxes: list[FolderDeletionItem]) -> list[str]:
+    rows = [
+        (
+            item.mailbox,
+            f"{item.messages:,}",
+            format_bytes(item.size_bytes) if item.size_bytes is not None else "unknown",
+            item.size_method,
+            "yes" if item.deleted else "no",
+        )
+        for item in mailboxes
+    ]
+    headers = ("Mailbox", "Messages", "Size", "Method", "Deleted")
+    widths = [
+        max(len(headers[index]), *(len(row[index]) for row in rows))
+        for index in range(len(headers))
+    ]
+
+    lines = ["Mailboxes:"]
     lines.append(_format_row(headers, widths))
     lines.append(_format_row(tuple("-" * width for width in widths), widths))
     lines.extend(_format_row(row, widths) for row in rows)
@@ -258,8 +293,22 @@ def _folder_deletion_report_to_dict(report: FolderDeletionReport) -> dict[str, A
         "deleted": report.deleted,
         "human_size": format_bytes(report.size_bytes) if report.size_bytes is not None else None,
         "mailbox": report.mailbox,
+        "mailboxes": [
+            {
+                "deleted": item.deleted,
+                "human_size": format_bytes(item.size_bytes)
+                if item.size_bytes is not None
+                else None,
+                "mailbox": item.mailbox,
+                "messages": item.messages,
+                "size_bytes": item.size_bytes,
+                "size_method": item.size_method,
+            }
+            for item in report.mailboxes
+        ],
         "messages": report.messages,
         "mode": report.mode,
+        "recursive": report.recursive,
         "size_bytes": report.size_bytes,
         "size_method": report.size_method,
         "warnings": report.warnings,

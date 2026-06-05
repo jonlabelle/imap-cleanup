@@ -3,6 +3,7 @@ import json
 from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
+    FolderDeletionItem,
     FolderDeletionReport,
     FolderReport,
     MessageSummary,
@@ -174,6 +175,16 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
         size_method="status-messages",
         deleted=False,
         warnings=["Child mailboxes are not deleted recursively by this command."],
+        recursive=True,
+        mailboxes=[
+            FolderDeletionItem(
+                mailbox="Archive/2025",
+                messages=7,
+                size_bytes=None,
+                size_method="status-messages",
+                deleted=False,
+            )
+        ],
     )
 
     table = render_folder_deletion_table(report)
@@ -181,6 +192,7 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
     assert "Archive" in table
     assert "7" in table
     assert "unknown" in table
+    assert "Mailboxes:" in table
     assert "status-messages" in table
     assert "Pass --execute" in table
     assert "Child mailboxes" in table
@@ -195,6 +207,16 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
         size_method="status-size",
         deleted=True,
         warnings=[],
+        recursive=True,
+        mailboxes=[
+            FolderDeletionItem(
+                mailbox="Archive",
+                messages=2,
+                size_bytes=2048,
+                size_method="status-size",
+                deleted=True,
+            )
+        ],
     )
 
     payload = json.loads(render_folder_deletion_json(report))
@@ -203,8 +225,19 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
         "deleted": True,
         "human_size": "2.0 KiB",
         "mailbox": "Archive",
+        "mailboxes": [
+            {
+                "deleted": True,
+                "human_size": "2.0 KiB",
+                "mailbox": "Archive",
+                "messages": 2,
+                "size_bytes": 2048,
+                "size_method": "status-size",
+            }
+        ],
         "messages": 2,
         "mode": "execute",
+        "recursive": True,
         "size_bytes": 2048,
         "size_method": "status-size",
         "warnings": [],

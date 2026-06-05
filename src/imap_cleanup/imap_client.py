@@ -14,6 +14,7 @@ from imap_cleanup.models import (
     DeletionMode,
     DeletionReport,
     ExpungeMethod,
+    FolderDeletionItem,
     FolderDeletionReport,
     FolderDeletionSizeMethod,
     FolderReport,
@@ -22,11 +23,13 @@ from imap_cleanup.models import (
     ReportError,
 )
 from imap_cleanup.parsing import (
+    MailboxListEntry,
     RawImapData,
     parse_capabilities,
     parse_fetch_message_summaries,
     parse_fetch_size_by_uid,
     parse_fetch_sizes,
+    parse_list_entries,
     parse_list_response,
     parse_quota_response,
     parse_select_count,
@@ -104,6 +107,7 @@ class DeletionOptions:
 class FolderDeletionOptions:
     mailbox: str
     execute: bool = False
+    recursive: bool = False
 
 
 def build_account_report(config: ConnectionConfig) -> AccountReport:
@@ -258,31 +262,39 @@ def collect_folder_deletion_report(
     options: FolderDeletionOptions,
 ) -> FolderDeletionReport:
     capabilities = _read_capabilities(client)
-    messages, size_bytes, size_method = _folder_deletion_status(
-        client,
-        options.mailbox,
-        supports_status_size="STATUS=SIZE" in capabilities,
-    )
-    mode: DeletionMode = "execute" if options.execute else "dry-run"
-    warnings = [
-        "Deleting a mailbox removes messages stored in that mailbox.",
-        "Child mailboxes are not deleted recursively by this command.",
+    mailboxes, warnings = _folder_deletion_mailboxes(client, options)
+    supports_status_size = "STATUS=SIZE" in capabilities
+    items = [
+        _folder_deletion_item(client, mailbox, supports_status_size=supports_status_size)
+        for mailbox in mailboxes
     ]
-    deleted = False
+    mode: DeletionMode = "execute" if options.execute else "dry-run"
+    warnings = _folder_deletion_warnings(options) + warnings
 
     if options.execute:
-        mailbox_arg = quote_mailbox(options.mailbox)
-        _call(f"DELETE {mailbox_arg}", lambda: client.delete(mailbox_arg))
-        deleted = True
+        for mailbox in reversed(mailboxes):
+            mailbox_arg = quote_mailbox(mailbox)
+
+            def delete_command(mailbox_arg: str = mailbox_arg) -> ImapResponse:
+                return client.delete(mailbox_arg)
+
+            _call(f"DELETE {mailbox_arg}", delete_command)
+        items = [replace(item, deleted=True) for item in items]
+
+    messages = sum(item.messages for item in items)
+    size_bytes = _folder_deletion_total_size(items)
+    deleted = bool(items) and all(item.deleted for item in items)
 
     return FolderDeletionReport(
         mailbox=options.mailbox,
         mode=mode,
         messages=messages,
         size_bytes=size_bytes,
-        size_method=size_method,
+        size_method="status-size" if size_bytes is not None else "status-messages",
         deleted=deleted,
         warnings=warnings,
+        recursive=options.recursive,
+        mailboxes=items,
     )
 
 
@@ -294,6 +306,11 @@ def _read_capabilities(client: ImapConnection) -> set[str]:
 def _list_mailboxes(client: ImapConnection) -> list[str]:
     data = _call("LIST", client.list)
     return parse_list_response(data)
+
+
+def _list_mailbox_entries(client: ImapConnection) -> list[MailboxListEntry]:
+    data = _call("LIST", client.list)
+    return parse_list_entries(data)
 
 
 def _folder_report(
@@ -365,6 +382,94 @@ def _read_quota(client: ImapConnection, mailbox: str) -> QuotaReport | None:
         lambda: client.getquotaroot(mailbox_arg),
     )
     return parse_quota_response(data)
+
+
+def _folder_deletion_mailboxes(
+    client: ImapConnection,
+    options: FolderDeletionOptions,
+) -> tuple[list[str], list[str]]:
+    if not options.recursive:
+        return [options.mailbox], []
+
+    entries = _list_mailbox_entries(client)
+    matching_entries = [
+        entry for entry in entries if _is_target_or_child_mailbox(entry, options.mailbox)
+    ]
+    mailboxes = [
+        entry.name
+        for entry in sorted(matching_entries, key=_mailbox_parent_first_sort_key)
+        if entry.selectable
+    ]
+    if not mailboxes:
+        raise ImapOperationError(
+            f'LIST did not return selectable mailbox "{options.mailbox}" or descendants'
+        )
+
+    warnings: list[str] = []
+    target_entry = next(
+        (entry for entry in matching_entries if entry.name == options.mailbox),
+        None,
+    )
+    if target_entry is not None and not target_entry.selectable:
+        warnings.append(
+            f'Target mailbox "{options.mailbox}" is not selectable; '
+            "only selectable descendants will be deleted."
+        )
+    elif target_entry is None and options.mailbox not in mailboxes:
+        warnings.append(
+            f'Target mailbox "{options.mailbox}" was not listed as selectable; '
+            "only selectable descendants will be deleted."
+        )
+    return mailboxes, warnings
+
+
+def _is_target_or_child_mailbox(entry: MailboxListEntry, target: str) -> bool:
+    if entry.name == target:
+        return True
+    if entry.delimiter is None:
+        return False
+    return entry.name.startswith(f"{target}{entry.delimiter}")
+
+
+def _mailbox_parent_first_sort_key(entry: MailboxListEntry) -> tuple[int, str]:
+    delimiter = entry.delimiter or "\0"
+    depth = entry.name.count(delimiter) if entry.delimiter is not None else 0
+    return depth, entry.name.casefold()
+
+
+def _folder_deletion_item(
+    client: ImapConnection,
+    mailbox: str,
+    *,
+    supports_status_size: bool,
+) -> FolderDeletionItem:
+    messages, size_bytes, size_method = _folder_deletion_status(
+        client,
+        mailbox,
+        supports_status_size=supports_status_size,
+    )
+    return FolderDeletionItem(
+        mailbox=mailbox,
+        messages=messages,
+        size_bytes=size_bytes,
+        size_method=size_method,
+        deleted=False,
+    )
+
+
+def _folder_deletion_total_size(items: list[FolderDeletionItem]) -> int | None:
+    if not items or any(item.size_bytes is None for item in items):
+        return None
+    return sum(item.size_bytes for item in items if item.size_bytes is not None)
+
+
+def _folder_deletion_warnings(options: FolderDeletionOptions) -> list[str]:
+    warnings = ["Deleting a mailbox removes messages stored in that mailbox."]
+    if options.recursive:
+        warnings.append("Recursive delete enabled; child mailboxes are deleted before parents.")
+    else:
+        warnings.append("Child mailboxes are not deleted recursively unless --recursive is set.")
+    return warnings
 
 
 def _folder_deletion_status(

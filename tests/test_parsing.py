@@ -4,6 +4,7 @@ from imap_cleanup.parsing import (
     parse_fetch_message_summaries,
     parse_fetch_size_by_uid,
     parse_fetch_sizes,
+    parse_list_entries,
     parse_list_response,
     parse_quota_response,
     parse_select_count,
@@ -39,6 +40,24 @@ def test_parse_list_response_returns_selectable_mailboxes() -> None:
     )
 
     assert mailboxes == ["INBOX", "[Gmail]/Sent Mail"]
+
+
+def test_parse_list_entries_preserves_delimiter_and_selectable_state() -> None:
+    entries = parse_list_entries(
+        [
+            b'(\\HasNoChildren) "/" "INBOX"',
+            b'(\\HasChildren \\Noselect) "/" "[Gmail]"',
+            b'(\\HasNoChildren) NIL "Archive"',
+        ]
+    )
+
+    assert entries[0].name == "INBOX"
+    assert entries[0].delimiter == "/"
+    assert entries[0].selectable is True
+    assert entries[1].name == "[Gmail]"
+    assert entries[1].selectable is False
+    assert entries[2].name == "Archive"
+    assert entries[2].delimiter is None
 
 
 def test_parse_status_response_extracts_messages_and_size() -> None:

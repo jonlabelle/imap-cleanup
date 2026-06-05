@@ -400,3 +400,75 @@ def test_delete_folder_execute_deletes_quoted_mailbox() -> None:
     assert report.mode == "execute"
     assert report.deleted is True
     assert ("delete", ('"Old Projects"',)) in client.calls
+
+
+def test_delete_folder_recursive_dry_run_reports_selectable_descendants() -> None:
+    client = FakeImapConnection(
+        capabilities=b"IMAP4rev1 STATUS=SIZE",
+        list_data=[
+            b'(\\HasChildren) "/" "Archive"',
+            b'(\\HasChildren) "/" "Archive/2025"',
+            b'(\\HasNoChildren) "/" "Archive/2025/January"',
+            b'(\\HasNoChildren) "/" "Archive Later"',
+        ],
+    )
+
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Archive", recursive=True),
+    )
+
+    assert report.recursive is True
+    assert report.mailboxes[0].mailbox == "Archive"
+    assert report.mailboxes[1].mailbox == "Archive/2025"
+    assert report.mailboxes[2].mailbox == "Archive/2025/January"
+    assert len(report.mailboxes) == 3
+    assert report.messages == 6
+    assert report.size_bytes == 90
+    assert report.deleted is False
+    assert ("status", ('"Archive Later"', "(MESSAGES SIZE)")) not in client.calls
+    assert not any(call == "delete" for call, _ in client.calls)
+
+
+def test_delete_folder_recursive_execute_deletes_children_before_parent() -> None:
+    client = FakeImapConnection(
+        capabilities=b"IMAP4rev1 STATUS=SIZE",
+        list_data=[
+            b'(\\HasChildren) "/" "Archive"',
+            b'(\\HasChildren) "/" "Archive/2025"',
+            b'(\\HasNoChildren) "/" "Archive/2025/January"',
+        ],
+    )
+
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Archive", execute=True, recursive=True),
+    )
+
+    assert report.deleted is True
+    assert all(item.deleted for item in report.mailboxes)
+    assert [args[0] for call, args in client.calls if call == "delete"] == [
+        '"Archive/2025/January"',
+        '"Archive/2025"',
+        '"Archive"',
+    ]
+
+
+def test_delete_folder_recursive_skips_noselect_parent() -> None:
+    client = FakeImapConnection(
+        list_data=[
+            b'(\\HasChildren \\Noselect) "/" "Archive"',
+            b'(\\HasNoChildren) "/" "Archive/2025"',
+        ],
+        status_response=("OK", [b'"Archive/2025" (MESSAGES 7)']),
+    )
+
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Archive", recursive=True),
+    )
+
+    assert [item.mailbox for item in report.mailboxes] == ["Archive/2025"]
+    assert report.messages == 7
+    assert report.size_bytes is None
+    assert any("not selectable" in warning for warning in report.warnings)

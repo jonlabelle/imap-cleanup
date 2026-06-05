@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
 from typing import Any
@@ -17,6 +18,13 @@ _FETCH_SIZE_RE = re.compile(r"\bRFC822\.SIZE\s+(\d+)\b", re.IGNORECASE)
 _FETCH_UID_RE = re.compile(r"\bUID\s+(\d+)\b", re.IGNORECASE)
 
 
+@dataclass(frozen=True)
+class MailboxListEntry:
+    name: str
+    delimiter: str | None
+    selectable: bool
+
+
 def parse_capabilities(data: Iterable[RawImapData]) -> set[str]:
     capabilities: set[str] = set()
     for line in iter_response_text(data):
@@ -26,15 +34,26 @@ def parse_capabilities(data: Iterable[RawImapData]) -> set[str]:
 
 
 def parse_list_response(data: Iterable[RawImapData]) -> list[str]:
-    mailboxes: list[str] = []
+    return [entry.name for entry in parse_list_entries(data) if entry.selectable]
+
+
+def parse_list_entries(data: Iterable[RawImapData]) -> list[MailboxListEntry]:
+    entries: list[MailboxListEntry] = []
     for line in iter_response_text(data):
         tokens = tokenize_imap(line)
-        if not tokens or _has_attribute(tokens, "\\NOSELECT"):
+        if len(tokens) < 2:
             continue
         mailbox = tokens[-1]
         if mailbox and mailbox.upper() != "NIL":
-            mailboxes.append(mailbox)
-    return mailboxes
+            delimiter = tokens[-2]
+            entries.append(
+                MailboxListEntry(
+                    name=mailbox,
+                    delimiter=None if delimiter.upper() == "NIL" else delimiter,
+                    selectable=not _has_attribute(tokens, "\\NOSELECT"),
+                )
+            )
+    return entries
 
 
 def parse_status_response(data: Iterable[RawImapData]) -> dict[str, int]:
