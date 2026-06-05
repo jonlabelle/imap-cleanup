@@ -23,6 +23,44 @@
       "console": "integratedTerminal",
       "justMyCode": true,
       "preLaunchTask": "uv: sync"
+    },
+    {
+      "name": "imap-cleanup: delete preview",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": [
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--before",
+        "2025-01-01",
+        "--preview"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
+    },
+    {
+      "name": "imap-cleanup: delete preview json",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": [
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--before",
+        "2025-01-01",
+        "--preview",
+        "--format",
+        "json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
     }
   ]
 }

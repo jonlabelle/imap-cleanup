@@ -73,11 +73,17 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `uv: build package` — Build wheel distribution in `dist/`
 - `imap-cleanup: folders` — Run the `folders` command
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
+- `imap-cleanup: delete preview` — Preview messages in `Archive` before `2025-01-01`
+- `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
 
 **Debug launch configurations:**
 
 - `imap-cleanup: folders` — Run the `folders` command
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
+- `imap-cleanup: delete preview` — Preview messages in `Archive` before `2025-01-01`
+- `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
+
+The delete preview entries are dry-run configurations and do not pass `--execute`.
 
 </details>
 

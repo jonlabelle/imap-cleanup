@@ -85,6 +85,40 @@
       "command": "uv",
       "args": ["run", "imap-cleanup", "folders", "--format", "json"],
       "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete preview",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--before",
+        "2025-01-01",
+        "--preview"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete preview json",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--before",
+        "2025-01-01",
+        "--preview",
+        "--format",
+        "json"
+      ],
+      "problemMatcher": []
     }
   ]
 }
