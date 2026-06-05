@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="configuration.md">← Configuration</a>
+  <a href="terms.md">← Common IMAP Terms</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -52,7 +52,7 @@ The response includes `capabilities`, `folders`, `quota`, and any `errors` encou
 ---
 
 <p align="center">
-  <a href="configuration.md">← Configuration</a>
+  <a href="terms.md">← Common IMAP Terms</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;

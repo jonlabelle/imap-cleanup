@@ -33,6 +33,8 @@
     "pyproject",
     "pytest",
     "QUOTAROOT",
+    "SASL",
+    "STARTTLS",
     "UIDPLUS",
     "uids",
     "usecwd",

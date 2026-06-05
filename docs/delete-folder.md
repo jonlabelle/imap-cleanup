@@ -31,22 +31,22 @@ dry run  →  execute
 
 ## All flags
 
-| Flag        | Default | Description                                                               |
-| ----------- | ------- | ------------------------------------------------------------------------- |
-| `--mailbox` | —       | Mailbox/folder to delete. Required.                                       |
-| `--execute` | off     | Actually delete the mailbox/folder. Without this, always a dry run.       |
-| `--format`  | `table` | Output format: `table` or `json`.                                         |
+| Flag        | Default | Description                                                         |
+| ----------- | ------- | ------------------------------------------------------------------- |
+| `--mailbox` | —       | Mailbox/folder to delete. Required.                                 |
+| `--execute` | off     | Actually delete the mailbox/folder. Without this, always a dry run. |
+| `--format`  | `table` | Output format: `table` or `json`.                                   |
 
 ## Output fields
 
-| Field               | Description                                               |
-| ------------------- | --------------------------------------------------------- |
-| Mailbox             | Target mailbox name                                       |
-| Mode                | `dry-run` or `execute`                                    |
-| Messages in mailbox | Total messages reported by IMAP `STATUS`                  |
-| Size                | Mailbox size when the server supports `STATUS=SIZE`       |
-| Size method         | `status-size` or `status-messages`                        |
-| Deleted mailbox     | Whether IMAP `DELETE` was executed successfully           |
+| Field               | Description                                         |
+| ------------------- | --------------------------------------------------- |
+| Mailbox             | Target mailbox name                                 |
+| Mode                | `dry-run` or `execute`                              |
+| Messages in mailbox | Total messages reported by IMAP `STATUS`            |
+| Size                | Mailbox size when the server supports `STATUS=SIZE` |
+| Size method         | `status-size` or `status-messages`                  |
+| Deleted mailbox     | Whether IMAP `DELETE` was executed successfully     |
 
 ## Caveats
 

@@ -3,7 +3,7 @@
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="folders.md">Folders →</a>
+  <a href="terms.md">Common IMAP Terms →</a>
 </p>
 
 ---
@@ -82,5 +82,5 @@ All commands accept `--format`:
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="folders.md">Folders →</a>
+  <a href="terms.md">Common IMAP Terms →</a>
 </p>
