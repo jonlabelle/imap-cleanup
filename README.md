@@ -3,7 +3,7 @@
 [![Version][version-badge]][latest-release]
 [![CI][ci-badge]][ci-workflow]
 
-> `imap-cleanup` is a command-line tool for inspecting and cleaning up IMAP mailboxes. It reports folder sizes and account quotas, and can find and delete messages by date or size.
+> `imap-cleanup` is a command-line tool for inspecting and cleaning up IMAP mailboxes. It reports folder sizes and account quotas, can find and delete messages by date or size, and can delete whole folders.
 
 ## Requirements
 
@@ -35,6 +35,7 @@ uv run imap-cleanup folders
 
 - **[`folders`](docs/folders.md)** — List all mailboxes sorted by size, with optional quota usage.
 - **[`delete`](docs/delete.md)** — Dry-run or mark messages deleted from a mailbox by date, size, or both.
+- **[`delete-folder`](docs/delete-folder.md)** — Dry-run or delete an entire mailbox/folder and the messages it contains.
 
 See [Examples](docs/examples.md) for worked end-to-end usage.
 
@@ -75,6 +76,8 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
 - `imap-cleanup: delete preview` — Preview messages in `Archive` before `2025-01-01`
 - `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
+- `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
+- `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 
 **Debug launch configurations:**
 
@@ -82,8 +85,10 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
 - `imap-cleanup: delete preview` — Preview messages in `Archive` before `2025-01-01`
 - `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
+- `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
+- `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 
-The delete preview entries are dry-run configurations and do not pass `--execute`.
+The delete preview and delete-folder entries are dry-run configurations and do not pass `--execute`.
 
 </details>
 

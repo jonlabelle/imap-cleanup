@@ -8,6 +8,7 @@ from typing import Literal
 SizeMethod = Literal["status-size", "rfc822-size"]
 DeletionMode = Literal["dry-run", "execute"]
 ExpungeMethod = Literal["none", "uid-expunge", "folder-expunge"]
+FolderDeletionSizeMethod = Literal["status-size", "status-messages"]
 
 
 @dataclass(frozen=True)
@@ -87,3 +88,14 @@ class DeletionReport:
     uid_sample: list[int]
     warnings: list[str]
     preview_messages: list[MessageSummary] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class FolderDeletionReport:
+    mailbox: str
+    mode: DeletionMode
+    messages: int
+    size_bytes: int | None
+    size_method: FolderDeletionSizeMethod
+    deleted: bool
+    warnings: list[str]

@@ -14,6 +14,8 @@ from imap_cleanup.models import (
     DeletionMode,
     DeletionReport,
     ExpungeMethod,
+    FolderDeletionReport,
+    FolderDeletionSizeMethod,
     FolderReport,
     MessageSummary,
     QuotaReport,
@@ -70,6 +72,8 @@ class ImapConnection(Protocol):
 
     def expunge(self) -> ImapResponse: ...
 
+    def delete(self, mailbox: str) -> ImapResponse: ...
+
 
 @dataclass(frozen=True)
 class ConnectionConfig:
@@ -96,6 +100,12 @@ class DeletionOptions:
     allow_folder_expunge: bool = False
 
 
+@dataclass(frozen=True)
+class FolderDeletionOptions:
+    mailbox: str
+    execute: bool = False
+
+
 def build_account_report(config: ConnectionConfig) -> AccountReport:
     try:
         client = open_connection(config)
@@ -119,6 +129,23 @@ def build_deletion_report(config: ConnectionConfig, options: DeletionOptions) ->
     try:
         _call("LOGIN", lambda: client.login(config.username, config.password))
         return collect_deletion_report(client, options)
+    finally:
+        with suppress(Exception):
+            client.logout()
+
+
+def build_folder_deletion_report(
+    config: ConnectionConfig,
+    options: FolderDeletionOptions,
+) -> FolderDeletionReport:
+    try:
+        client = open_connection(config)
+    except OSError as exc:
+        raise ImapCleanupError(f"failed to connect to {config.host}:{config.port}: {exc}") from exc
+
+    try:
+        _call("LOGIN", lambda: client.login(config.username, config.password))
+        return collect_folder_deletion_report(client, options)
     finally:
         with suppress(Exception):
             client.logout()
@@ -226,6 +253,39 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
     )
 
 
+def collect_folder_deletion_report(
+    client: ImapConnection,
+    options: FolderDeletionOptions,
+) -> FolderDeletionReport:
+    capabilities = _read_capabilities(client)
+    messages, size_bytes, size_method = _folder_deletion_status(
+        client,
+        options.mailbox,
+        supports_status_size="STATUS=SIZE" in capabilities,
+    )
+    mode: DeletionMode = "execute" if options.execute else "dry-run"
+    warnings = [
+        "Deleting a mailbox removes messages stored in that mailbox.",
+        "Child mailboxes are not deleted recursively by this command.",
+    ]
+    deleted = False
+
+    if options.execute:
+        mailbox_arg = quote_mailbox(options.mailbox)
+        _call(f"DELETE {mailbox_arg}", lambda: client.delete(mailbox_arg))
+        deleted = True
+
+    return FolderDeletionReport(
+        mailbox=options.mailbox,
+        mode=mode,
+        messages=messages,
+        size_bytes=size_bytes,
+        size_method=size_method,
+        deleted=deleted,
+        warnings=warnings,
+    )
+
+
 def _read_capabilities(client: ImapConnection) -> set[str]:
     data = _call("CAPABILITY", client.capability)
     return parse_capabilities(data)
@@ -305,6 +365,48 @@ def _read_quota(client: ImapConnection, mailbox: str) -> QuotaReport | None:
         lambda: client.getquotaroot(mailbox_arg),
     )
     return parse_quota_response(data)
+
+
+def _folder_deletion_status(
+    client: ImapConnection,
+    mailbox: str,
+    *,
+    supports_status_size: bool,
+) -> tuple[int, int | None, FolderDeletionSizeMethod]:
+    if supports_status_size:
+        with suppress(ImapCleanupError):
+            return _folder_deletion_status_with_size(client, mailbox)
+    messages = _folder_deletion_message_count(client, mailbox)
+    return messages, None, "status-messages"
+
+
+def _folder_deletion_status_with_size(
+    client: ImapConnection,
+    mailbox: str,
+) -> tuple[int, int, FolderDeletionSizeMethod]:
+    mailbox_arg = quote_mailbox(mailbox)
+    data = _call(
+        f"STATUS {mailbox_arg}",
+        lambda: client.status(mailbox_arg, "(MESSAGES SIZE)"),
+    )
+    values = parse_status_response(data)
+    messages = values.get("MESSAGES")
+    size_bytes = values.get("SIZE")
+    if messages is None or size_bytes is None:
+        raise ImapOperationError(f'STATUS "{mailbox}" did not return MESSAGES and SIZE')
+    return messages, size_bytes, "status-size"
+
+
+def _folder_deletion_message_count(client: ImapConnection, mailbox: str) -> int:
+    mailbox_arg = quote_mailbox(mailbox)
+    data = _call(
+        f"STATUS {mailbox_arg}",
+        lambda: client.status(mailbox_arg, "(MESSAGES)"),
+    )
+    messages = parse_status_response(data).get("MESSAGES")
+    if messages is None:
+        raise ImapOperationError(f'STATUS "{mailbox}" did not return MESSAGES')
+    return messages
 
 
 def _quota_mailbox(mailboxes: list[str]) -> str:

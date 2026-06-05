@@ -15,6 +15,7 @@ CLI usage examples for common `imap-cleanup` workflows.
 - [Connection setup](#connection-setup)
 - [Folders](#folders)
 - [Delete](#delete)
+- [Delete folder](#delete-folder)
 
 ## Connection setup
 
@@ -154,8 +155,34 @@ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
 
 ---
 
+## Delete Folder
+
+### Dry run
+
+Check the message count before deleting the folder itself:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects"
+```
+
+### Execute
+
+Delete the folder and the messages stored in that folder:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
+```
+
+### JSON output
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
+```
+
+---
+
 <p align="center">
-  <a href="delete.md">← Delete</a>
+  <a href="delete-folder.md">← Delete Folder</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;

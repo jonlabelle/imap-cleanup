@@ -102,3 +102,27 @@ def test_delete_command_parses_selectors() -> None:
     assert args.preview is True
     assert args.preview_limit == 3
     assert args.execute is True
+
+
+def test_delete_folder_command_parses_execution_flags() -> None:
+    args = build_parser().parse_args(
+        [
+            "delete-folder",
+            "--host",
+            "imap.example.com",
+            "--username",
+            "user@example.com",
+            "--password",
+            "secret",
+            "--mailbox",
+            "Old Projects",
+            "--execute",
+            "--format",
+            "json",
+        ]
+    )
+
+    assert args.command == "delete-folder"
+    assert args.mailbox == "Old Projects"
+    assert args.execute is True
+    assert args.format == "json"

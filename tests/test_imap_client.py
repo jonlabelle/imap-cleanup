@@ -4,8 +4,10 @@ from datetime import date
 
 from imap_cleanup.imap_client import (
     DeletionOptions,
+    FolderDeletionOptions,
     collect_account_report,
     collect_deletion_report,
+    collect_folder_deletion_report,
     quote_mailbox,
 )
 from imap_cleanup.parsing import RawImapData
@@ -28,6 +30,7 @@ class FakeImapConnection:
         uid_expunge_response: ImapResponse | None = None,
         quota_response: ImapResponse | None = None,
         expunge_response: ImapResponse | None = None,
+        delete_response: ImapResponse | None = None,
     ) -> None:
         self.capabilities = capabilities
         self.list_data = list_data or [b'(\\HasNoChildren) "/" "INBOX"']
@@ -70,6 +73,7 @@ class FakeImapConnection:
             [b'* QUOTA "" (STORAGE 1 2)'],
         )
         self.expunge_response = expunge_response or ("OK", [b"1", b"2"])
+        self.delete_response = delete_response or ("OK", [])
         self.calls: list[tuple[str, tuple[object, ...]]] = []
 
     def login(self, user: str, password: str) -> ImapResponse:
@@ -119,6 +123,10 @@ class FakeImapConnection:
     def expunge(self) -> ImapResponse:
         self.calls.append(("expunge", ()))
         return self.expunge_response
+
+    def delete(self, mailbox: str) -> ImapResponse:
+        self.calls.append(("delete", (mailbox,)))
+        return self.delete_response
 
 
 def test_collect_report_uses_status_size_when_supported() -> None:
@@ -349,3 +357,46 @@ def test_delete_execute_allows_folder_expunge_with_opt_in() -> None:
     assert report.expunged_messages == 2
     assert ("expunge", ()) in client.calls
     assert report.warnings
+
+
+def test_delete_folder_dry_run_reads_status_without_delete() -> None:
+    client = FakeImapConnection(capabilities=b"IMAP4rev1 STATUS=SIZE")
+
+    report = collect_folder_deletion_report(client, FolderDeletionOptions(mailbox="Archive"))
+
+    assert report.mode == "dry-run"
+    assert report.mailbox == "Archive"
+    assert report.messages == 2
+    assert report.size_bytes == 30
+    assert report.size_method == "status-size"
+    assert report.deleted is False
+    assert ("status", ('"Archive"', "(MESSAGES SIZE)")) in client.calls
+    assert not any(call == "delete" for call, _ in client.calls)
+    assert not any(call == "select" for call, _ in client.calls)
+
+
+def test_delete_folder_dry_run_uses_message_count_when_status_size_is_unavailable() -> None:
+    client = FakeImapConnection(
+        capabilities=b"IMAP4rev1",
+        status_response=("OK", [b'"Archive" (MESSAGES 7)']),
+    )
+
+    report = collect_folder_deletion_report(client, FolderDeletionOptions(mailbox="Archive"))
+
+    assert report.messages == 7
+    assert report.size_bytes is None
+    assert report.size_method == "status-messages"
+    assert ("status", ('"Archive"', "(MESSAGES)")) in client.calls
+
+
+def test_delete_folder_execute_deletes_quoted_mailbox() -> None:
+    client = FakeImapConnection(capabilities=b"IMAP4rev1 STATUS=SIZE")
+
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Old Projects", execute=True),
+    )
+
+    assert report.mode == "execute"
+    assert report.deleted is True
+    assert ("delete", ('"Old Projects"',)) in client.calls

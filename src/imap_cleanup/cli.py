@@ -14,13 +14,17 @@ from dotenv import find_dotenv, load_dotenv
 from imap_cleanup.imap_client import (
     ConnectionConfig,
     DeletionOptions,
+    FolderDeletionOptions,
     ImapCleanupError,
     build_account_report,
     build_deletion_report,
+    build_folder_deletion_report,
 )
 from imap_cleanup.rendering import (
     render_deletion_json,
     render_deletion_table,
+    render_folder_deletion_json,
+    render_folder_deletion_table,
     render_json,
     render_table,
 )
@@ -137,6 +141,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow folder-wide EXPUNGE when UID-scoped expunge is unavailable.",
     )
     delete.set_defaults(func=_run_delete)
+
+    delete_folder = subparsers.add_parser(
+        "delete-folder",
+        aliases=["delete-mailbox"],
+        help="Dry-run or delete an entire mailbox/folder and its messages.",
+    )
+    _add_connection_arguments(delete_folder)
+    _add_format_argument(delete_folder)
+    delete_folder.add_argument(
+        "--mailbox",
+        required=True,
+        help="Mailbox/folder to delete.",
+    )
+    delete_folder.add_argument(
+        "--execute",
+        action="store_true",
+        help="Actually delete the mailbox/folder. Without this, delete-folder is a dry run.",
+    )
+    delete_folder.set_defaults(func=_run_delete_folder)
     return parser
 
 
@@ -189,6 +212,31 @@ def _run_delete(args: argparse.Namespace) -> int:
 
     output = (
         render_deletion_json(report) if args.format == "json" else render_deletion_table(report)
+    )
+    print(output)
+    return 0
+
+
+def _run_delete_folder(args: argparse.Namespace) -> int:
+    config = _connection_config_from_args(args)
+    if config is None:
+        return 2
+
+    options = FolderDeletionOptions(
+        mailbox=str(args.mailbox),
+        execute=bool(args.execute),
+    )
+
+    try:
+        report = build_folder_deletion_report(config, options)
+    except ImapCleanupError as exc:
+        print(f"imap-cleanup: {exc}", file=sys.stderr)
+        return 1
+
+    output = (
+        render_folder_deletion_json(report)
+        if args.format == "json"
+        else render_folder_deletion_table(report)
     )
     print(output)
     return 0

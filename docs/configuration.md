@@ -60,7 +60,7 @@ Shell environment variables are never overwritten by `.env`, and CLI flags alway
 
 ## Output format
 
-Both `folders` and `delete` accept `--format`:
+All commands accept `--format`:
 
 | Value   | Description                           |
 | ------- | ------------------------------------- |

@@ -3,6 +3,7 @@ import json
 from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
+    FolderDeletionReport,
     FolderReport,
     MessageSummary,
     QuotaReport,
@@ -13,6 +14,8 @@ from imap_cleanup.rendering import (
     format_bytes,
     render_deletion_json,
     render_deletion_table,
+    render_folder_deletion_json,
+    render_folder_deletion_table,
     render_json,
     render_table,
 )
@@ -160,3 +163,49 @@ def test_render_deletion_json_matches_report_schema() -> None:
             "human_size": "30 B",
         }
     ]
+
+
+def test_render_folder_deletion_table_includes_action_summary() -> None:
+    report = FolderDeletionReport(
+        mailbox="Archive",
+        mode="dry-run",
+        messages=7,
+        size_bytes=None,
+        size_method="status-messages",
+        deleted=False,
+        warnings=["Child mailboxes are not deleted recursively by this command."],
+    )
+
+    table = render_folder_deletion_table(report)
+
+    assert "Archive" in table
+    assert "7" in table
+    assert "unknown" in table
+    assert "status-messages" in table
+    assert "Pass --execute" in table
+    assert "Child mailboxes" in table
+
+
+def test_render_folder_deletion_json_matches_report_schema() -> None:
+    report = FolderDeletionReport(
+        mailbox="Archive",
+        mode="execute",
+        messages=2,
+        size_bytes=2048,
+        size_method="status-size",
+        deleted=True,
+        warnings=[],
+    )
+
+    payload = json.loads(render_folder_deletion_json(report))
+
+    assert payload == {
+        "deleted": True,
+        "human_size": "2.0 KiB",
+        "mailbox": "Archive",
+        "messages": 2,
+        "mode": "execute",
+        "size_bytes": 2048,
+        "size_method": "status-size",
+        "warnings": [],
+    }

@@ -8,6 +8,7 @@ from typing import Any
 from imap_cleanup.models import (
     AccountReport,
     DeletionReport,
+    FolderDeletionReport,
     FolderReport,
     MessageSummary,
     QuotaReport,
@@ -77,6 +78,31 @@ def render_deletion_table(report: DeletionReport) -> str:
 
 def render_deletion_json(report: DeletionReport) -> str:
     return json.dumps(_deletion_report_to_dict(report), indent=2, sort_keys=True)
+
+
+def render_folder_deletion_table(report: FolderDeletionReport) -> str:
+    rows = [
+        ("Mailbox", report.mailbox),
+        ("Mode", report.mode),
+        ("Messages in mailbox", f"{report.messages:,}"),
+        ("Size", format_bytes(report.size_bytes) if report.size_bytes is not None else "unknown"),
+        ("Size method", report.size_method),
+        ("Deleted mailbox", "yes" if report.deleted else "no"),
+    ]
+    width = max(len(label) for label, _ in rows)
+    lines = [f"{label.ljust(width)}  {value}" for label, value in rows]
+    if report.warnings:
+        lines.append("")
+        lines.append("Warnings:")
+        lines.extend(f"- {warning}" for warning in report.warnings)
+    if report.mode == "dry-run":
+        lines.append("")
+        lines.append("Pass --execute to delete this mailbox and all messages it contains.")
+    return "\n".join(lines)
+
+
+def render_folder_deletion_json(report: FolderDeletionReport) -> str:
+    return json.dumps(_folder_deletion_report_to_dict(report), indent=2, sort_keys=True)
 
 
 def format_bytes(size_bytes: int) -> str:
@@ -223,6 +249,19 @@ def _deletion_report_to_dict(report: DeletionReport) -> dict[str, Any]:
             }
             for message in report.preview_messages
         ],
+        "warnings": report.warnings,
+    }
+
+
+def _folder_deletion_report_to_dict(report: FolderDeletionReport) -> dict[str, Any]:
+    return {
+        "deleted": report.deleted,
+        "human_size": format_bytes(report.size_bytes) if report.size_bytes is not None else None,
+        "mailbox": report.mailbox,
+        "messages": report.messages,
+        "mode": report.mode,
+        "size_bytes": report.size_bytes,
+        "size_method": report.size_method,
         "warnings": report.warnings,
     }
 

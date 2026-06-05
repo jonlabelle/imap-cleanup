@@ -119,6 +119,34 @@
         "json"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete folder dry run",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete-folder",
+        "--mailbox",
+        "Old Projects"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete folder dry run json",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete-folder",
+        "--mailbox",
+        "Old Projects",
+        "--format",
+        "json"
+      ],
+      "problemMatcher": []
     }
   ]
 }
