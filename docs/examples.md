@@ -1,9 +1,7 @@
 <p align="center">
-  <a href="delete.md">← Delete</a>
+  <a href="delete-folder.md">← Delete Folder</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="../README.md">Project README →</a>
 </p>
 
 ---
@@ -201,6 +199,4 @@ uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
   <a href="delete-folder.md">← Delete Folder</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="../README.md">Project README →</a>
 </p>

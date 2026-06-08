@@ -3,9 +3,7 @@
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="delete-folder.md">Delete Folder</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="examples.md">Examples →</a>
+  <a href="delete-folder.md">Delete Folder →</a>
 </p>
 
 ---
@@ -14,7 +12,8 @@
 
 The `delete` command targets messages in a single mailbox while keeping the mailbox/folder itself. By default it's always a dry run — nothing is modified until you pass `--execute`.
 
-Use [`delete-folder`](delete-folder.md) when you want to remove the mailbox/folder itself and the messages it contains.
+> [!Note]
+> Use [`delete-folder`](delete-folder.md) when you want to remove the mailbox/folder itself and the messages it contains.
 
 ## Lifecycle
 
@@ -102,7 +101,5 @@ If the server doesn't support UIDPLUS, `--expunge` alone does nothing. You also 
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="delete-folder.md">Delete Folder</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="examples.md">Examples →</a>
+  <a href="delete-folder.md">Delete Folder →</a>
 </p>

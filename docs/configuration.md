@@ -1,6 +1,4 @@
 <p align="center">
-  <a href="../README.md">← Project README</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="terms.md">Common IMAP Terms →</a>
@@ -78,8 +76,6 @@ All commands accept `--format`:
 ---
 
 <p align="center">
-  <a href="../README.md">← Project README</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="terms.md">Common IMAP Terms →</a>
