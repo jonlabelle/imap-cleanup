@@ -1,9 +1,7 @@
 <p align="center">
-  <a href="configuration.md">← Configuration</a>
+  <a href="delete-folder.md">← Delete Folder</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="folders.md">Folders →</a>
 </p>
 
 ---
@@ -87,9 +85,7 @@ Short definitions for IMAP terms and acronyms used by mail clients, servers, and
 ---
 
 <p align="center">
-  <a href="configuration.md">← Configuration</a>
+  <a href="delete-folder.md">← Delete Folder</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="folders.md">Folders →</a>
 </p>

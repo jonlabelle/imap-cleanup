@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="terms.md">← Common IMAP Terms</a>
+  <a href="configuration.md">← Configuration</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -115,7 +115,7 @@ Example JSON output:
 ---
 
 <p align="center">
-  <a href="terms.md">← Common IMAP Terms</a>
+  <a href="configuration.md">← Configuration</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;

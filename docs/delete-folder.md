@@ -2,6 +2,8 @@
   <a href="delete.md">← Delete Messages</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="terms.md">Common IMAP Terms →</a>
 </p>
 
 ---
@@ -169,4 +171,6 @@ Recursive totals add up per-mailbox sizes when every affected mailbox returns a 
   <a href="delete.md">← Delete Messages</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="terms.md">Common IMAP Terms →</a>
 </p>

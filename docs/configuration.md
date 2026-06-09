@@ -1,7 +1,7 @@
 <p align="center">
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="terms.md">Common IMAP Terms →</a>
+  <a href="folders.md">Folders →</a>
 </p>
 
 ---
@@ -92,5 +92,5 @@ All commands accept `--format`:
 <p align="center">
   <a href="README.md">Docs</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="terms.md">Common IMAP Terms →</a>
+  <a href="folders.md">Folders →</a>
 </p>

@@ -1,10 +1,10 @@
 # Docs
 
 - [Configuration](configuration.md) — connection flags, environment variables, `.env` setup, output format, exit codes
-- [Common IMAP Terms](terms.md) — short definitions for common IMAP terms, commands, flags, and extensions
 - [Folders](folders.md) — list mailboxes by size, quota reporting, size methods, JSON output
 - [Delete](delete.md) — dry run, execute, expunge, all flags, selector rules, output fields
 - [Delete Folder](delete-folder.md) — dry run or delete an entire mailbox/folder and optional child folders
+- [Common IMAP Terms](terms.md) — short definitions for common IMAP terms, commands, flags, and extensions
 
 Relevant pages include an Examples section with worked usage.
 
