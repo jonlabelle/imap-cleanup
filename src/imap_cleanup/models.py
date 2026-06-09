@@ -8,7 +8,7 @@ from typing import Literal
 SizeMethod = Literal["status-size", "rfc822-size"]
 DeletionMode = Literal["dry-run", "execute"]
 ExpungeMethod = Literal["none", "uid-expunge", "folder-expunge"]
-FolderDeletionSizeMethod = Literal["status-size", "status-messages"]
+FolderDeletionSizeMethod = Literal["status-size", "rfc822-size", "mixed", "status-messages"]
 
 
 @dataclass(frozen=True)

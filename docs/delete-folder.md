@@ -47,17 +47,30 @@ dry run  →  execute
 | Mode               | `dry-run` or `execute`                                    |
 | Recursive          | Whether child mailboxes are included                      |
 | Mailboxes affected | Number of mailboxes listed for deletion                   |
-| Messages affected  | Total messages reported by IMAP `STATUS`                  |
-| Total size         | Total mailbox size when the server supports `STATUS=SIZE` |
+| Messages affected  | Total messages reported for affected mailboxes            |
+| Total size         | Total mailbox size when a size method is available        |
 | Deleted mailboxes  | Whether IMAP `DELETE` was executed successfully           |
 
-The table output also lists each affected mailbox. JSON output includes the same data in a `mailboxes` array.
+The table output also lists each affected mailbox with its size method. JSON output includes the same data in a `mailboxes` array and includes a top-level `size_method`.
+
+## Size methods
+
+`delete-folder` can report sizes with these methods:
+
+- **`status-size`** — the server supports `STATUS=SIZE` and returned mailbox size directly.
+- **`rfc822-size`** — dry-run fallback when direct size is unavailable. The CLI opens the mailbox read-only and sums each message's `RFC822.SIZE`.
+- **`mixed`** — recursive JSON totals were calculated from more than one known size method.
+- **`status-messages`** — only a message count was available; size is reported as unknown.
+
+Recursive totals add up per-mailbox sizes when every affected mailbox returns a known size. If any affected mailbox only returns `status-messages`, the total size is unknown.
 
 ## Caveats
 
 - `delete-folder` sends IMAP `DELETE` for the named mailbox. Provider behavior can vary, but the command is intended to remove the folder and messages stored only in that folder.
 - Child mailboxes are included only when `--recursive` is passed. Recursive execution deletes child mailboxes before parent mailboxes.
 - Non-selectable parents are not deleted; with `--recursive`, selectable descendants under that parent can still be deleted.
+- The `rfc822-size` fallback is used for dry runs only. Execute mode avoids opening the target mailbox before `DELETE`; run a dry run first when you need fallback size totals on servers without `STATUS=SIZE`.
+- `rfc822-size` is the encoded message size, so attachment-heavy mailboxes can report larger than the original attachment files.
 - Gmail-style labels are not normal folders. Deleting a label/mailbox may not remove the underlying message when the same message also has other labels.
 
 ---

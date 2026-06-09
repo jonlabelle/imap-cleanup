@@ -264,11 +264,16 @@ def collect_folder_deletion_report(
     capabilities = _read_capabilities(client)
     mailboxes, warnings = _folder_deletion_mailboxes(client, options)
     supports_status_size = "STATUS=SIZE" in capabilities
+    mode: DeletionMode = "execute" if options.execute else "dry-run"
     items = [
-        _folder_deletion_item(client, mailbox, supports_status_size=supports_status_size)
+        _folder_deletion_item(
+            client,
+            mailbox,
+            supports_status_size=supports_status_size,
+            allow_rfc822_size=mode == "dry-run",
+        )
         for mailbox in mailboxes
     ]
-    mode: DeletionMode = "execute" if options.execute else "dry-run"
     warnings = _folder_deletion_warnings(options) + warnings
 
     if options.execute:
@@ -290,7 +295,7 @@ def collect_folder_deletion_report(
         mode=mode,
         messages=messages,
         size_bytes=size_bytes,
-        size_method="status-size" if size_bytes is not None else "status-messages",
+        size_method=_folder_deletion_size_method(items),
         deleted=deleted,
         warnings=warnings,
         recursive=options.recursive,
@@ -442,11 +447,13 @@ def _folder_deletion_item(
     mailbox: str,
     *,
     supports_status_size: bool,
+    allow_rfc822_size: bool,
 ) -> FolderDeletionItem:
     messages, size_bytes, size_method = _folder_deletion_status(
         client,
         mailbox,
         supports_status_size=supports_status_size,
+        allow_rfc822_size=allow_rfc822_size,
     )
     return FolderDeletionItem(
         mailbox=mailbox,
@@ -463,6 +470,17 @@ def _folder_deletion_total_size(items: list[FolderDeletionItem]) -> int | None:
     return sum(item.size_bytes for item in items if item.size_bytes is not None)
 
 
+def _folder_deletion_size_method(items: list[FolderDeletionItem]) -> FolderDeletionSizeMethod:
+    methods = {item.size_method for item in items}
+    if not methods or "status-messages" in methods:
+        return "status-messages"
+    if methods == {"status-size"}:
+        return "status-size"
+    if methods == {"rfc822-size"}:
+        return "rfc822-size"
+    return "mixed"
+
+
 def _folder_deletion_warnings(options: FolderDeletionOptions) -> list[str]:
     warnings = ["Deleting a mailbox removes messages stored in that mailbox."]
     if options.recursive:
@@ -477,8 +495,13 @@ def _folder_deletion_status(
     mailbox: str,
     *,
     supports_status_size: bool,
+    allow_rfc822_size: bool,
 ) -> tuple[int, int | None, FolderDeletionSizeMethod]:
-    if supports_status_size:
+    if allow_rfc822_size:
+        with suppress(ImapCleanupError):
+            report = _folder_report(client, mailbox, supports_status_size)
+            return report.messages, report.size_bytes, report.method
+    elif supports_status_size:
         with suppress(ImapCleanupError):
             return _folder_deletion_status_with_size(client, mailbox)
     messages = _folder_deletion_message_count(client, mailbox)

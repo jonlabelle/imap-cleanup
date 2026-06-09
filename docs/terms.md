@@ -62,7 +62,7 @@ Short definitions for IMAP terms and acronyms used by mail clients, servers, and
 | `BEFORE`       | IMAP search key for messages with an internal date before a date.               |
 | `SINCE`        | IMAP search key for messages with an internal date on or after a date.          |
 | Size filter    | Local filter based on each message's reported byte size.                        |
-| `RFC822.SIZE`  | IMAP message size field, usually the encoded message size in bytes.             |
+| `RFC822.SIZE`  | IMAP message size field, usually encoded bytes; can be summed as a size fallback. |
 | `STATUS=SIZE`  | Extension that lets a server report total mailbox size directly.                |
 | UID expunge    | Expunge operation that removes only specific UIDs.                              |
 | Folder expunge | Expunge operation that removes all `\Deleted` messages in the selected mailbox. |

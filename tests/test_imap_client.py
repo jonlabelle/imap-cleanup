@@ -23,8 +23,10 @@ class FakeImapConnection:
         list_data: list[RawImapData] | None = None,
         status_response: ImapResponse | None = None,
         select_response: ImapResponse | None = None,
+        select_responses: dict[str, ImapResponse] | None = None,
         search_response: ImapResponse | None = None,
         fetch_response: ImapResponse | None = None,
+        fetch_responses: dict[str, ImapResponse] | None = None,
         preview_fetch_response: ImapResponse | None = None,
         store_response: ImapResponse | None = None,
         uid_expunge_response: ImapResponse | None = None,
@@ -39,6 +41,7 @@ class FakeImapConnection:
             [b'"INBOX" (MESSAGES 2 SIZE 30)'],
         )
         self.select_response = select_response or ("OK", [b"2"])
+        self.select_responses = select_responses or {}
         self.search_response = search_response or ("OK", [b"101 102"])
         self.fetch_response = fetch_response or (
             "OK",
@@ -47,6 +50,7 @@ class FakeImapConnection:
                 b"2 (UID 102 RFC822.SIZE 20)",
             ],
         )
+        self.fetch_responses = fetch_responses or {}
         self.preview_fetch_response = preview_fetch_response or (
             "OK",
             [
@@ -75,6 +79,7 @@ class FakeImapConnection:
         self.expunge_response = expunge_response or ("OK", [b"1", b"2"])
         self.delete_response = delete_response or ("OK", [])
         self.calls: list[tuple[str, tuple[object, ...]]] = []
+        self.selected_mailbox: str | None = None
 
     def login(self, user: str, password: str) -> ImapResponse:
         self.calls.append(("login", (user, password)))
@@ -102,7 +107,8 @@ class FakeImapConnection:
         readonly: bool = False,
     ) -> ImapResponse:
         self.calls.append(("select", (mailbox, readonly)))
-        return self.select_response
+        self.selected_mailbox = mailbox
+        return self.select_responses.get(mailbox, self.select_response)
 
     def uid(self, command: str, *args: str | None) -> ImapResponse:
         self.calls.append(("uid", (command, *args)))
@@ -114,7 +120,7 @@ class FakeImapConnection:
             return self.store_response
         if command == "EXPUNGE":
             return self.uid_expunge_response
-        return self.fetch_response
+        return self.fetch_responses.get(self.selected_mailbox or "", self.fetch_response)
 
     def getquotaroot(self, mailbox: str) -> ImapResponse:
         self.calls.append(("getquotaroot", (mailbox,)))
@@ -375,18 +381,51 @@ def test_delete_folder_dry_run_reads_status_without_delete() -> None:
     assert not any(call == "select" for call, _ in client.calls)
 
 
-def test_delete_folder_dry_run_uses_message_count_when_status_size_is_unavailable() -> None:
+def test_delete_folder_dry_run_falls_back_to_rfc822_size_without_status_size() -> None:
+    client = FakeImapConnection(capabilities=b"IMAP4rev1")
+
+    report = collect_folder_deletion_report(client, FolderDeletionOptions(mailbox="Archive"))
+
+    assert report.messages == 2
+    assert report.size_bytes == 30
+    assert report.size_method == "rfc822-size"
+    assert ("select", ('"Archive"', True)) in client.calls
+    assert ("uid", ("FETCH", "1:*", "(UID RFC822.SIZE)")) in client.calls
+    assert ("status", ('"Archive"', "(MESSAGES)")) not in client.calls
+
+
+def test_delete_folder_dry_run_falls_back_when_status_size_fails() -> None:
+    client = FakeImapConnection(
+        capabilities=b"IMAP4rev1 STATUS=SIZE",
+        status_response=("BAD", [b"STATUS=SIZE unsupported here"]),
+    )
+
+    report = collect_folder_deletion_report(client, FolderDeletionOptions(mailbox="Archive"))
+
+    assert report.messages == 2
+    assert report.size_bytes == 30
+    assert report.size_method == "rfc822-size"
+    assert ("status", ('"Archive"', "(MESSAGES SIZE)")) in client.calls
+    assert ("select", ('"Archive"', True)) in client.calls
+
+
+def test_delete_folder_execute_uses_message_count_when_status_size_is_unavailable() -> None:
     client = FakeImapConnection(
         capabilities=b"IMAP4rev1",
         status_response=("OK", [b'"Archive" (MESSAGES 7)']),
     )
 
-    report = collect_folder_deletion_report(client, FolderDeletionOptions(mailbox="Archive"))
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Archive", execute=True),
+    )
 
+    assert report.mode == "execute"
     assert report.messages == 7
     assert report.size_bytes is None
     assert report.size_method == "status-messages"
     assert ("status", ('"Archive"', "(MESSAGES)")) in client.calls
+    assert not any(call == "select" for call, _ in client.calls)
 
 
 def test_delete_folder_execute_deletes_quoted_mailbox() -> None:
@@ -430,6 +469,42 @@ def test_delete_folder_recursive_dry_run_reports_selectable_descendants() -> Non
     assert not any(call == "delete" for call, _ in client.calls)
 
 
+def test_delete_folder_recursive_dry_run_totals_rfc822_size_fallback() -> None:
+    client = FakeImapConnection(
+        capabilities=b"IMAP4rev1",
+        list_data=[
+            b'(\\HasChildren) "/" "Archive"',
+            b'(\\HasNoChildren) "/" "Archive/2025"',
+        ],
+        select_responses={
+            '"Archive"': ("OK", [b"1"]),
+            '"Archive/2025"': ("OK", [b"2"]),
+        },
+        fetch_responses={
+            '"Archive"': ("OK", [b"1 (UID 101 RFC822.SIZE 10)"]),
+            '"Archive/2025"': (
+                "OK",
+                [
+                    b"1 (UID 201 RFC822.SIZE 20)",
+                    b"2 (UID 202 RFC822.SIZE 30)",
+                ],
+            ),
+        },
+    )
+
+    report = collect_folder_deletion_report(
+        client,
+        FolderDeletionOptions(mailbox="Archive", recursive=True),
+    )
+
+    assert report.messages == 3
+    assert report.size_bytes == 60
+    assert report.size_method == "rfc822-size"
+    assert [item.messages for item in report.mailboxes] == [1, 2]
+    assert [item.size_bytes for item in report.mailboxes] == [10, 50]
+    assert [item.size_method for item in report.mailboxes] == ["rfc822-size", "rfc822-size"]
+
+
 def test_delete_folder_recursive_execute_deletes_children_before_parent() -> None:
     client = FakeImapConnection(
         capabilities=b"IMAP4rev1 STATUS=SIZE",
@@ -460,7 +535,21 @@ def test_delete_folder_recursive_skips_noselect_parent() -> None:
             b'(\\HasChildren \\Noselect) "/" "Archive"',
             b'(\\HasNoChildren) "/" "Archive/2025"',
         ],
-        status_response=("OK", [b'"Archive/2025" (MESSAGES 7)']),
+        select_responses={'"Archive/2025"': ("OK", [b"7"])},
+        fetch_responses={
+            '"Archive/2025"': (
+                "OK",
+                [
+                    b"1 (UID 201 RFC822.SIZE 1)",
+                    b"2 (UID 202 RFC822.SIZE 2)",
+                    b"3 (UID 203 RFC822.SIZE 3)",
+                    b"4 (UID 204 RFC822.SIZE 4)",
+                    b"5 (UID 205 RFC822.SIZE 5)",
+                    b"6 (UID 206 RFC822.SIZE 6)",
+                    b"7 (UID 207 RFC822.SIZE 7)",
+                ],
+            ),
+        },
     )
 
     report = collect_folder_deletion_report(
@@ -470,5 +559,6 @@ def test_delete_folder_recursive_skips_noselect_parent() -> None:
 
     assert [item.mailbox for item in report.mailboxes] == ["Archive/2025"]
     assert report.messages == 7
-    assert report.size_bytes is None
+    assert report.size_bytes == 28
+    assert report.size_method == "rfc822-size"
     assert any("not selectable" in warning for warning in report.warnings)
