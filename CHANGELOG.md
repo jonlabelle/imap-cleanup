@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.6.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.5.0...v1.6.0) (2026-06-09)
+
+
+### Features
+
+* enhance delete-folder command with size reporting methods and fallback logic ([5ce3224](https://github.com/jonlabelle/imap-cleanup/commit/5ce3224207b0160cba4c57ab1a1114bc589892a4))
+
 # [1.5.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.4.0...v1.5.0) (2026-06-05)
 
 
