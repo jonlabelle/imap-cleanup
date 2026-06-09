@@ -2,8 +2,6 @@
   <a href="delete.md">← Delete Messages</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="examples.md">Examples →</a>
 </p>
 
 ---
@@ -41,17 +39,109 @@ dry run  →  execute
 
 ## Output fields
 
-| Field              | Description                                               |
-| ------------------ | --------------------------------------------------------- |
-| Mailbox            | Target mailbox name                                       |
-| Mode               | `dry-run` or `execute`                                    |
-| Recursive          | Whether child mailboxes are included                      |
-| Mailboxes affected | Number of mailboxes listed for deletion                   |
-| Messages affected  | Total messages reported for affected mailboxes            |
-| Total size         | Total mailbox size when a size method is available        |
-| Deleted mailboxes  | Whether IMAP `DELETE` was executed successfully           |
+| Field              | Description                                        |
+| ------------------ | -------------------------------------------------- |
+| Mailbox            | Target mailbox name                                |
+| Mode               | `dry-run` or `execute`                             |
+| Recursive          | Whether child mailboxes are included               |
+| Mailboxes affected | Number of mailboxes listed for deletion            |
+| Messages affected  | Total messages reported for affected mailboxes     |
+| Total size         | Total mailbox size when a size method is available |
+| Deleted mailboxes  | Whether IMAP `DELETE` was executed successfully    |
 
 The table output also lists each affected mailbox with its size method. JSON output includes the same data in a `mailboxes` array and includes a top-level `size_method`.
+
+## Examples
+
+The output shown below is representative. Mailbox names, counts, sizes, and size methods depend
+on your IMAP server and account.
+
+### Dry run
+
+Check the message count before deleting the folder itself:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects"
+```
+
+### Execute
+
+Delete the folder and the messages stored in that folder:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
+```
+
+### Recursive dry run
+
+Check the folder and all selectable child folders before deleting anything:
+
+```console
+$ uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive
+
+Mailbox             Old Projects
+Mode                dry-run
+Recursive           yes
+Mailboxes affected  2
+Messages affected   340
+Total size          1.6 GiB
+Deleted mailboxes   no
+
+Mailboxes:
+Mailbox            Messages  Size        Method       Deleted
+-----------------  --------  ----------  -----------  -------
+Old Projects       120       600.0 MiB   status-size  no
+Old Projects/2022  220       1000.0 MiB  status-size  no
+
+Warnings:
+- Deleting a mailbox removes messages stored in that mailbox.
+- Recursive delete enabled; child mailboxes are deleted before parents.
+
+Pass --execute to delete these mailboxes and all messages they contain.
+```
+
+### Recursive execute
+
+Delete child folders first, then the parent folder:
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
+```
+
+### JSON output
+
+```console
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
+```
+
+Example JSON output:
+
+```json
+{
+  "deleted": false,
+  "human_size": "600.0 MiB",
+  "mailbox": "Old Projects",
+  "mailboxes": [
+    {
+      "deleted": false,
+      "human_size": "600.0 MiB",
+      "mailbox": "Old Projects",
+      "messages": 120,
+      "size_bytes": 629145600,
+      "size_method": "status-size"
+    }
+  ],
+  "messages": 120,
+  "mode": "dry-run",
+  "recursive": false,
+  "size_bytes": 629145600,
+  "size_method": "status-size",
+  "warnings": [
+    "Deleting a mailbox removes messages stored in that mailbox.",
+    "Child mailboxes are not deleted recursively unless --recursive is set."
+  ]
+}
+```
 
 ## Size methods
 
@@ -79,6 +169,4 @@ Recursive totals add up per-mailbox sizes when every affected mailbox returns a 
   <a href="delete.md">← Delete Messages</a>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="README.md">Docs</a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="examples.md">Examples →</a>
 </p>

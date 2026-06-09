@@ -37,7 +37,7 @@ uv run imap-cleanup folders
 - **[`delete`](docs/delete.md)** — Dry-run or mark messages deleted from a mailbox by date, size, or both.
 - **[`delete-folder`](docs/delete-folder.md)** — Dry-run or delete an entire mailbox/folder, optionally including child folders.
 
-See [Examples](docs/examples.md) for worked end-to-end usage.
+Each command page includes an Examples section with worked usage.
 
 ## Development
 

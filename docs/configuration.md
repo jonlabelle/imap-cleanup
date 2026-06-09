@@ -56,6 +56,20 @@ The `.env` file is git-ignored and loaded automatically.
 
 Shell environment variables are never overwritten by `.env`, and CLI flags always win over both.
 
+## Examples
+
+### Connection setup
+
+Copy the sample and fill in your account details:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your IMAP host, port, username, and password. The file is loaded
+automatically, and any shell environment variables or CLI flags you pass still follow the
+precedence rules above.
+
 ## Output format
 
 All commands accept `--format`:

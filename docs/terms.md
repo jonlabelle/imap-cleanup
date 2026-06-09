@@ -53,20 +53,20 @@ Short definitions for IMAP terms and acronyms used by mail clients, servers, and
 
 ## Cleanup terms
 
-| Term           | Definition                                                                      |
-| -------------- | ------------------------------------------------------------------------------- |
-| Dry run        | Preview mode that reports what would happen without changing mail.              |
-| Execute        | Mode that applies the requested deletion action.                                |
-| Preview        | Optional output showing sample messages that match delete criteria.             |
-| Selector       | A filter that chooses messages, such as date, size, or `--all`.                 |
-| `BEFORE`       | IMAP search key for messages with an internal date before a date.               |
-| `SINCE`        | IMAP search key for messages with an internal date on or after a date.          |
-| Size filter    | Local filter based on each message's reported byte size.                        |
+| Term           | Definition                                                                        |
+| -------------- | --------------------------------------------------------------------------------- |
+| Dry run        | Preview mode that reports what would happen without changing mail.                |
+| Execute        | Mode that applies the requested deletion action.                                  |
+| Preview        | Optional output showing sample messages that match delete criteria.               |
+| Selector       | A filter that chooses messages, such as date, size, or `--all`.                   |
+| `BEFORE`       | IMAP search key for messages with an internal date before a date.                 |
+| `SINCE`        | IMAP search key for messages with an internal date on or after a date.            |
+| Size filter    | Local filter based on each message's reported byte size.                          |
 | `RFC822.SIZE`  | IMAP message size field, usually encoded bytes; can be summed as a size fallback. |
-| `STATUS=SIZE`  | Extension that lets a server report total mailbox size directly.                |
-| UID expunge    | Expunge operation that removes only specific UIDs.                              |
-| Folder expunge | Expunge operation that removes all `\Deleted` messages in the selected mailbox. |
-| Delete mailbox | Remove a mailbox/folder itself using IMAP `DELETE`.                             |
+| `STATUS=SIZE`  | Extension that lets a server report total mailbox size directly.                  |
+| UID expunge    | Expunge operation that removes only specific UIDs.                                |
+| Folder expunge | Expunge operation that removes all `\Deleted` messages in the selected mailbox.   |
+| Delete mailbox | Remove a mailbox/folder itself using IMAP `DELETE`.                               |
 
 ## Acronyms and extensions
 

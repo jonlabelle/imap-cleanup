@@ -44,9 +44,72 @@ uv run imap-cleanup folders --format json
 
 The response includes `capabilities`, `folders`, `quota`, and any `errors` encountered per-mailbox during scanning. Each folder entry includes `mailbox`, `messages`, `size_bytes`, `human_size`, and `method`.
 
+## Examples
+
+The output shown below is representative. Mailbox names, counts, sizes, quota data, and
+capabilities depend on your IMAP server and account.
+
+### List all mailboxes
+
+```console
+$ uv run imap-cleanup folders
+
+Quota root "": STORAGE 4.6 GiB / 15.0 GiB
+
+Mailbox  Messages  Size bytes     Size       Method
+-------  --------  -------------  ---------  -----------
+Archive  1,250     3,221,225,472  3.0 GiB    status-size
+Sent     420       786,432,000    750.0 MiB  status-size
+INBOX    80        94,371,840     90.0 MiB   status-size
+
+Caveats:
+- Gmail-style labels are reported as mailboxes; one message can appear in multiple
+  labels, so summed mailbox sizes can exceed account storage or quota.
+- Messages marked \Deleted may still count until the mailbox is expunged; the
+  report reflects what the server returns at scan time.
+```
+
+### JSON output
+
+```console
+uv run imap-cleanup folders --format json
+```
+
+Example JSON output:
+
+```json
+{
+  "capabilities": ["IMAP4REV1", "QUOTA", "STATUS=SIZE"],
+  "errors": [],
+  "folders": [
+    {
+      "human_size": "3.0 GiB",
+      "mailbox": "Archive",
+      "messages": 1250,
+      "method": "status-size",
+      "size_bytes": 3221225472
+    }
+  ],
+  "quota": {
+    "resources": [
+      {
+        "limit": 15728640,
+        "limit_bytes": 16106127360,
+        "name": "STORAGE",
+        "unit": "KiB",
+        "usage": 4823449,
+        "usage_bytes": 4939211776
+      }
+    ],
+    "root": ""
+  }
+}
+```
+
 ## Caveats
 
 - **`rfc822-size` is the encoded size.** Base64-encoded attachments are stored roughly one third larger than the original file, so the reported size can be meaningfully higher than what the attachment actually occupied on disk.
+- **Gmail-style labels are reported as mailboxes.** One message can appear in multiple labels, so summed mailbox sizes can exceed account storage or quota.
 - **Messages marked `\Deleted` may still be counted** until the mailbox is expunged. The report reflects whatever the server returns at scan time.
 
 ---

@@ -88,6 +88,171 @@ Examples: `500B`, `25MiB`, `1.5GiB`, `500MB`
 | Expunge method      | `none`, `uid-expunge` (UIDPLUS), or `folder-expunge`           |
 | UID sample          | First few affected UIDs                                        |
 
+## Examples
+
+The output shown below is representative. Mailbox names, counts, UIDs, sizes, and message
+metadata depend on your IMAP server and account.
+
+### Dry run: messages before a date
+
+See what would be deleted from `Archive` before January 1, 2025, without touching anything:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01
+```
+
+### Dry run: messages larger than a size
+
+Messages in `Sent` larger than 25 MiB:
+
+```console
+uv run imap-cleanup delete --mailbox Sent --larger-than 25MiB
+```
+
+### Dry run: messages smaller than a size
+
+Messages in `Archive` smaller than 100 KiB:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --smaller-than 100KiB
+```
+
+### Dry run: combining date and size
+
+Messages in `Archive` older than January 1, 2025, and larger than 10 MiB:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --larger-than 10MiB
+```
+
+### Date range
+
+Messages in `Archive` received between January 1, 2020, and January 1, 2023:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01-01
+```
+
+### Preview affected messages
+
+Inspect the actual messages that would be affected before committing. Shows UID, Date, From,
+Subject, and size for the first 10 matches:
+
+```console
+$ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview
+
+Mailbox              Archive
+Mode                 dry-run
+Criteria             BEFORE 01-Jan-2025
+Messages in mailbox  1,250
+Search matches       390
+Filter matches       390
+Affected messages    390
+Affected size        2.8 GiB
+Marked deleted       0
+Expunged             0
+Expunge method       none
+UID sample           12044, 12045, 12046, 12047, 12048
+
+Preview:
+UID    Date                            From                                 Subject              Size
+-----  ------------------------------  -----------------------------------  -------------------  -------
+12044  Mon, 18 Mar 2024 14:22:10 +...  Statements <statements@example.com>  Quarterly statement  9.0 MiB
+12087  Thu, 05 Dec 2024 09:08:33 +...  Receipts <receipts@example.com>      Travel receipt       7.4 MiB
+
+Pass --execute to mark these messages \Deleted.
+```
+
+Show more:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview --preview-limit 50
+```
+
+### Match everything with a size filter
+
+Match all messages in `Trash` larger than 1 MiB:
+
+```console
+uv run imap-cleanup delete --mailbox Trash --all --larger-than 1MiB
+```
+
+`--all` cannot be combined with `--before` or `--since`.
+
+### Limit how many messages are affected
+
+Mark at most 100 messages even if more match:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --limit 100
+```
+
+### Execute: mark messages deleted
+
+Add `--execute` to actually mark matched messages `\Deleted`:
+
+```console
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --before 2025-01-01 \
+  --execute
+```
+
+### Execute and expunge
+
+Mark deleted and permanently remove in the same run. Uses `UID EXPUNGE` if the server supports
+UIDPLUS:
+
+```console
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --before 2025-01-01 \
+  --execute \
+  --expunge
+```
+
+### Expunge on a server without UIDPLUS
+
+Pass `--allow-folder-expunge` to permit a folder-wide expunge. This permanently removes **all**
+messages already marked `\Deleted` in the folder, not just the ones from the current run:
+
+```console
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --before 2025-01-01 \
+  --execute \
+  --expunge \
+  --allow-folder-expunge
+```
+
+### JSON output
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
+```
+
+Example JSON output:
+
+```json
+{
+  "affected_human_size": "700.0 MiB",
+  "affected_messages": 100,
+  "affected_size_bytes": 734003200,
+  "expunge_method": "none",
+  "expunged_messages": 0,
+  "mailbox": "Archive",
+  "marked_deleted_messages": 0,
+  "matched_messages": 390,
+  "mode": "dry-run",
+  "preview_messages": [],
+  "search_criteria": ["BEFORE", "01-Jan-2025"],
+  "searched_messages": 390,
+  "selected_messages": 1250,
+  "uid_sample": [12044, 12045, 12046, 12047, 12048],
+  "warnings": []
+}
+```
+
 ## Expunge
 
 When `--expunge` is passed, the CLI prefers `UID EXPUNGE`, available when the server advertises the UIDPLUS extension. This removes only the specific UIDs from the current run.
