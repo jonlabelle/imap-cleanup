@@ -161,6 +161,22 @@
         "--recursive"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete folder recursive dry run json",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete-folder",
+        "--mailbox",
+        "Old Projects",
+        "--recursive",
+        "--format",
+        "json"
+      ],
+      "problemMatcher": []
     }
   ]
 }

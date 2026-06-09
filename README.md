@@ -79,6 +79,7 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 - `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
+- `imap-cleanup: delete folder recursive dry run json` — Check the same folder tree with JSON output
 
 **Debug launch configurations:**
 
@@ -89,6 +90,7 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 - `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
+- `imap-cleanup: delete folder recursive dry run json` — Check the same folder tree with JSON output
 
 The delete preview and delete-folder entries are dry-run configurations and do not pass `--execute`.
 
