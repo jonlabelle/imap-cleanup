@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.7.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.6.0...v1.7.0) (2026-06-09)
+
+
+### Features
+
+* add recursive delete-folder option with JSON output for dry run ([5892afb](https://github.com/jonlabelle/imap-cleanup/commit/5892afb8e221ed8c5f9d47f20f701003ac6f330f))
+
 # [1.6.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.5.0...v1.6.0) (2026-06-09)
 
 
