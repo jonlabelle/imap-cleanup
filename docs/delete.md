@@ -138,6 +138,8 @@ uv run imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01
 Inspect the actual messages that would be affected before committing. Shows UID, Date, From,
 Subject, and size for the first 10 matches:
 
+<!-- doc-example:start delete-preview -->
+
 ```console
 $ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview
 
@@ -162,6 +164,8 @@ UID    Date                            From                                 Subj
 
 Pass --execute to mark these messages \Deleted.
 ```
+
+<!-- doc-example:end delete-preview -->
 
 Show more:
 
@@ -233,11 +237,13 @@ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
 
 Example JSON output:
 
+<!-- doc-example:start delete-json -->
+
 ```json
 {
-  "affected_human_size": "700.0 MiB",
-  "affected_messages": 100,
-  "affected_size_bytes": 734003200,
+  "affected_human_size": "2.8 GiB",
+  "affected_messages": 390,
+  "affected_size_bytes": 3006477107,
   "expunge_method": "none",
   "expunged_messages": 0,
   "mailbox": "Archive",
@@ -252,6 +258,8 @@ Example JSON output:
   "warnings": []
 }
 ```
+
+<!-- doc-example:end delete-json -->
 
 ## Expunge
 

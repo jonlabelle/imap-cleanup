@@ -78,6 +78,8 @@ uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
 
 Check the folder and all selectable child folders before deleting anything:
 
+<!-- doc-example:start delete-folder-recursive -->
+
 ```console
 $ uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive
 
@@ -102,6 +104,8 @@ Warnings:
 Pass --execute to delete these mailboxes and all messages they contain.
 ```
 
+<!-- doc-example:end delete-folder-recursive -->
+
 ### Recursive execute
 
 Delete child folders first, then the parent folder:
@@ -117,6 +121,8 @@ uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
 ```
 
 Example JSON output:
+
+<!-- doc-example:start delete-folder-json -->
 
 ```json
 {
@@ -144,6 +150,8 @@ Example JSON output:
   ]
 }
 ```
+
+<!-- doc-example:end delete-folder-json -->
 
 ## Size methods
 

@@ -18,16 +18,27 @@ uv run imap-cleanup folders
 
 ## Output
 
+<!-- doc-example:start folders-table -->
+
 ```console
 $ uv run imap-cleanup folders
 
-Quota root "": STORAGE 14.0 GiB / 25.0 GiB
+Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
-Mailbox  Messages  Size bytes     Size     Method
--------  --------  -------------  -------  -----------
-Sent     3,102     8,697,308,774  8.1 GiB  rfc822-size
-INBOX    12,440    5,153,960,755  4.8 GiB  status-size
+Mailbox  Messages  Size bytes     Size       Method
+-------  --------  -------------  ---------  -----------
+Archive  1,250     3,221,225,472  3.0 GiB    status-size
+Sent     420       786,432,000    750.0 MiB  status-size
+INBOX    80        94,371,840     90.0 MiB   status-size
+
+Caveats:
+- Gmail-style labels are reported as mailboxes; one message can appear in multiple
+  labels, so summed mailbox sizes can exceed account storage or quota.
+- Messages marked \Deleted may still count until the mailbox is expunged; the
+  report reflects what the server returns at scan time.
 ```
+
+<!-- doc-example:end folders-table -->
 
 The `Method` column tells you how the size was calculated:
 
@@ -51,6 +62,8 @@ capabilities depend on your IMAP server and account.
 
 ### List all mailboxes
 
+<!-- doc-example:start folders-table -->
+
 ```console
 $ uv run imap-cleanup folders
 
@@ -69,6 +82,8 @@ Caveats:
   report reflects what the server returns at scan time.
 ```
 
+<!-- doc-example:end folders-table -->
+
 ### JSON output
 
 ```console
@@ -76,6 +91,8 @@ uv run imap-cleanup folders --format json
 ```
 
 Example JSON output:
+
+<!-- doc-example:start folders-json -->
 
 ```json
 {
@@ -88,6 +105,20 @@ Example JSON output:
       "messages": 1250,
       "method": "status-size",
       "size_bytes": 3221225472
+    },
+    {
+      "human_size": "750.0 MiB",
+      "mailbox": "Sent",
+      "messages": 420,
+      "method": "status-size",
+      "size_bytes": 786432000
+    },
+    {
+      "human_size": "90.0 MiB",
+      "mailbox": "INBOX",
+      "messages": 80,
+      "method": "status-size",
+      "size_bytes": 94371840
     }
   ],
   "quota": {
@@ -105,6 +136,8 @@ Example JSON output:
   }
 }
 ```
+
+<!-- doc-example:end folders-json -->
 
 ## Caveats
 

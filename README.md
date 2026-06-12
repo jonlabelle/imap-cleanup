@@ -31,6 +31,30 @@ uv run imap-cleanup folders
 
 > Credentials are loaded from a `.env` file or environment variables. See [Configuration](docs/configuration.md) for setup details.
 
+Representative output:
+
+<!-- doc-example:start folders-table -->
+
+```console
+$ uv run imap-cleanup folders
+
+Quota root "": STORAGE 4.6 GiB / 15.0 GiB
+
+Mailbox  Messages  Size bytes     Size       Method
+-------  --------  -------------  ---------  -----------
+Archive  1,250     3,221,225,472  3.0 GiB    status-size
+Sent     420       786,432,000    750.0 MiB  status-size
+INBOX    80        94,371,840     90.0 MiB   status-size
+
+Caveats:
+- Gmail-style labels are reported as mailboxes; one message can appear in multiple
+  labels, so summed mailbox sizes can exceed account storage or quota.
+- Messages marked \Deleted may still count until the mailbox is expunged; the
+  report reflects what the server returns at scan time.
+```
+
+<!-- doc-example:end folders-table -->
+
 ## Commands
 
 - **[`folders`](docs/folders.md)** — List all mailboxes sorted by size, with optional quota usage.
@@ -45,6 +69,8 @@ Requires [uv](https://docs.astral.sh/uv/). Simply run `uv sync --dev` to install
 
 The CLI is built on [imaplib](https://docs.python.org/3/library/imaplib.html) and [argparse](https://docs.python.org/3/library/argparse.html) from the standard library.
 
+README and command examples are generated from fixtures through the production renderers. Refresh them with `uv run python scripts/render_doc_examples.py --write`; `uv run pytest` verifies they are current.
+
 <details>
 <summary>Commands</summary>
 
@@ -56,6 +82,9 @@ uv run ruff format --check . # Check formatting
 uv run ruff format .         # Format code
 uv run mypy .                # Type check
 uv run pytest                # Run tests
+
+# Refresh generated docs examples
+uv run python scripts/render_doc_examples.py --write
 ```
 
 </details>
