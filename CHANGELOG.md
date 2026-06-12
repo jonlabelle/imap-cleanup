@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.8.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.7.0...v1.8.0) (2026-06-12)
+
+
+### Features
+
+* bump minimum python version to 3.14 ([d349ba6](https://github.com/jonlabelle/imap-cleanup/commit/d349ba61436b543675a09936ffc40b73ca246015))
+
 # [1.7.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.6.0...v1.7.0) (2026-06-09)
 
 
