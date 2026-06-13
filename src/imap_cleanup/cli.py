@@ -115,15 +115,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Limit how many matching messages are marked deleted.",
     )
     delete.add_argument(
-        "--preview",
-        action="store_true",
-        help="Fetch and show a capped list of affected message summaries.",
-    )
-    delete.add_argument(
-        "--preview-limit",
+        "--sample-limit",
         type=_positive_int,
         default=10,
-        help="Limit how many affected message summaries --preview fetches. Defaults to 10.",
+        help="How many message summaries to show in dry-run output. Defaults to 10.",
     )
     delete.add_argument(
         "--execute",
@@ -165,15 +160,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also delete selectable child mailboxes below --mailbox.",
     )
     delete_folder.add_argument(
-        "--preview",
-        action="store_true",
-        help="Fetch and show a capped list of affected message summaries.",
-    )
-    delete_folder.add_argument(
-        "--preview-limit",
+        "--sample-limit",
         type=_positive_int,
         default=10,
-        help="Limit how many affected message summaries --preview fetches. Defaults to 10.",
+        help="How many message summaries to show in dry-run output. Defaults to 10.",
     )
     delete_folder.set_defaults(func=_run_delete_folder)
     return parser
@@ -213,8 +203,7 @@ def _run_delete(args: argparse.Namespace) -> int:
         larger_than=args.larger_than,
         smaller_than=args.smaller_than,
         limit=args.limit,
-        preview=bool(args.preview),
-        preview_limit=args.preview_limit,
+        sample_limit=args.sample_limit,
         execute=bool(args.execute),
         expunge=bool(args.expunge),
         allow_folder_expunge=bool(args.allow_folder_expunge),
@@ -242,8 +231,7 @@ def _run_delete_folder(args: argparse.Namespace) -> int:
         mailbox=str(args.mailbox),
         execute=bool(args.execute),
         recursive=bool(args.recursive),
-        preview=bool(args.preview),
-        preview_limit=args.preview_limit,
+        sample_limit=args.sample_limit,
     )
 
     try:

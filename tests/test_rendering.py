@@ -100,7 +100,7 @@ def test_render_deletion_table_includes_action_summary() -> None:
         expunge_method="none",
         uid_sample=[101, 102],
         warnings=["Dry run only."],
-        preview_messages=[
+        sample_messages=[
             MessageSummary(
                 uid=101,
                 date="Wed, 01 Jan 2025 12:00:00 +0000",
@@ -115,7 +115,7 @@ def test_render_deletion_table_includes_action_summary() -> None:
 
     assert "Archive" in table
     assert "2.0 KiB" in table
-    assert "Preview:" in table
+    assert "Messages:" in table
     assert "Sender <sender@example.com>" in table
     assert "Old attachment" in table
     assert "Pass --execute" in table
@@ -137,7 +137,7 @@ def test_render_deletion_json_matches_report_schema() -> None:
         expunge_method="uid-expunge",
         uid_sample=[101],
         warnings=[],
-        preview_messages=[
+        sample_messages=[
             MessageSummary(
                 uid=101,
                 date="Wed, 01 Jan 2025 12:00:00 +0000",
@@ -154,7 +154,7 @@ def test_render_deletion_json_matches_report_schema() -> None:
     assert payload["mode"] == "execute"
     assert payload["affected_human_size"] == "30 B"
     assert payload["expunge_method"] == "uid-expunge"
-    assert payload["preview_messages"] == [
+    assert payload["sample_messages"] == [
         {
             "uid": 101,
             "date": "Wed, 01 Jan 2025 12:00:00 +0000",
@@ -183,7 +183,7 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
                 size_bytes=None,
                 size_method="status-messages",
                 deleted=False,
-                preview_messages=[
+                sample_messages=[
                     MessageSummary(
                         uid=201,
                         date="Wed, 01 Jan 2025 12:00:00 +0000",
@@ -202,7 +202,7 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
     assert "7" in table
     assert "unknown" in table
     assert "Mailboxes:" in table
-    assert "Preview:" in table
+    assert "Messages:" in table
     assert "Old project note" in table
     assert "status-messages" in table
     assert "Pass --execute" in table
@@ -226,7 +226,7 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
                 size_bytes=2048,
                 size_method="status-size",
                 deleted=True,
-                preview_messages=[
+                sample_messages=[
                     MessageSummary(
                         uid=101,
                         date="Wed, 01 Jan 2025 12:00:00 +0000",
@@ -251,7 +251,7 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
                 "human_size": "2.0 KiB",
                 "mailbox": "Archive",
                 "messages": 2,
-                "preview_messages": [
+                "sample_messages": [
                     {
                         "date": "Wed, 01 Jan 2025 12:00:00 +0000",
                         "from": "Sender <sender@example.com>",

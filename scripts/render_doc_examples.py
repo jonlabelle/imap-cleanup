@@ -208,14 +208,14 @@ def _generated_examples() -> dict[str, str]:
             render_table(folders_report),
         ),
         "folders-json": _fenced("json", render_json(folders_report)),
-        "delete-preview": _console_example(
-            "uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview",
+        "delete-dry-run": _console_example(
+            "uv run imap-cleanup delete --mailbox Archive --before 2025-01-01",
             render_deletion_table(delete_report),
         ),
         "delete-json": _fenced("json", render_deletion_json(delete_json_report)),
         "delete-folder-recursive": _console_example(
             'uv run imap-cleanup delete-folder --mailbox "Old Projects" '
-            "--recursive --preview --preview-limit 3",
+            "--recursive --sample-limit 3",
             render_folder_deletion_table(delete_folder_report),
         ),
         "delete-folder-json": _fenced(
@@ -262,7 +262,7 @@ def _delete_report() -> DeletionReport:
         expunge_method="none",
         uid_sample=[12_044, 12_045, 12_046, 12_047, 12_048],
         warnings=[],
-        preview_messages=[
+        sample_messages=[
             MessageSummary(
                 uid=12_044,
                 date="Mon, 18 Mar 2024 14:22:10 +0000",
@@ -311,7 +311,7 @@ def _delete_folder_report() -> FolderDeletionReport:
         warnings=[
             "Deleting a mailbox removes messages stored in that mailbox.",
             "Recursive delete enabled; child mailboxes are deleted before parents.",
-            "Preview limited to first 3 of 340 affected messages.",
+            "Showing first 3 of 340 affected messages.",
         ],
         mailboxes=[
             FolderDeletionItem(
@@ -320,7 +320,7 @@ def _delete_folder_report() -> FolderDeletionReport:
                 size_bytes=600 * 1024**2,
                 size_method="status-size",
                 deleted=False,
-                preview_messages=[
+                sample_messages=[
                     MessageSummary(
                         uid=12_044,
                         date="Mon, 18 Mar 2024 14:22:10 +0000",
@@ -343,7 +343,7 @@ def _delete_folder_report() -> FolderDeletionReport:
                 size_bytes=1_000 * 1024**2,
                 size_method="status-size",
                 deleted=False,
-                preview_messages=[
+                sample_messages=[
                     MessageSummary(
                         uid=22_410,
                         date="Tue, 09 Aug 2022 16:45:00 +0000",

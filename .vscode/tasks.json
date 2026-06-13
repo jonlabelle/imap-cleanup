@@ -87,7 +87,7 @@
       "problemMatcher": []
     },
     {
-      "label": "imap-cleanup: delete preview",
+      "label": "imap-cleanup: delete dry run",
       "type": "shell",
       "command": "uv",
       "args": [
@@ -97,13 +97,12 @@
         "--mailbox",
         "Archive",
         "--before",
-        "2025-01-01",
-        "--preview"
+        "2025-01-01"
       ],
       "problemMatcher": []
     },
     {
-      "label": "imap-cleanup: delete preview json",
+      "label": "imap-cleanup: delete dry run json",
       "type": "shell",
       "command": "uv",
       "args": [
@@ -114,7 +113,6 @@
         "Archive",
         "--before",
         "2025-01-01",
-        "--preview",
         "--format",
         "json"
       ],
@@ -158,8 +156,7 @@
         "delete-folder",
         "--mailbox",
         "Old Projects",
-        "--recursive",
-        "--preview"
+        "--recursive"
       ],
       "problemMatcher": []
     },
@@ -174,7 +171,6 @@
         "--mailbox",
         "Old Projects",
         "--recursive",
-        "--preview",
         "--format",
         "json"
       ],

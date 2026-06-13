@@ -18,13 +18,12 @@ The `delete` command targets messages in a single mailbox while keeping the mail
 ## Lifecycle
 
 ```plaintext
-dry run  →  preview  →  execute  →  expunge
+dry run  →  execute  →  expunge
 ```
 
-1. Run without `--execute` to see how many messages match and how much space they use.
-2. Add `--preview` to inspect which messages would be affected before committing.
-3. Add `--execute` to mark matching messages `\Deleted`.
-4. Add `--expunge` (with `--execute`) to permanently remove them in the same run.
+1. Run without `--execute` to see which messages match, how much space they use, and a sample of the affected messages.
+2. Add `--execute` to mark matching messages `\Deleted`.
+3. Add `--expunge` (with `--execute`) to permanently remove them in the same run.
 
 ## Selectors
 
@@ -64,8 +63,7 @@ Examples: `500B`, `25MiB`, `1.5GiB`, `500MB`
 | `--smaller-than`         | —       | Filter by maximum message size.                                                 |
 | `--all`                  | —       | Match every message (before size filters).                                      |
 | `--limit N`              | —       | Cap how many matched messages are affected.                                     |
-| `--preview`              | off     | Fetch and show a sample of affected messages.                                   |
-| `--preview-limit N`      | `10`    | How many message summaries `--preview` fetches.                                 |
+| `--sample-limit N`       | `10`    | How many message summaries to show in dry-run output.                           |
 | `--execute`              | off     | Mark matched messages `\Deleted`. Without this, always a dry run.               |
 | `--expunge`              | off     | Permanently remove messages after marking deleted. Requires `--execute`.        |
 | `--allow-folder-expunge` | off     | Permit folder-wide EXPUNGE when the server lacks UIDPLUS. Requires `--expunge`. |
@@ -95,10 +93,42 @@ metadata depend on your IMAP server and account.
 
 ### Dry run: messages before a date
 
-See what would be deleted from `Archive` before January 1, 2025, without touching anything:
+See what would be deleted from `Archive` before January 1, 2025, without touching anything.
+Includes a sample of affected message headers:
+
+<!-- doc-example:start delete-dry-run -->
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01
+$ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01
+
+Mailbox              Archive
+Mode                 dry-run
+Criteria             BEFORE 01-Jan-2025
+Messages in mailbox  1,250
+Search matches       390
+Filter matches       390
+Affected messages    390
+Affected size        2.8 GiB
+Marked deleted       0
+Expunged             0
+Expunge method       none
+UID sample           12044, 12045, 12046, 12047, 12048
+
+Messages:
+UID    Date                            From                                 Subject              Size
+-----  ------------------------------  -----------------------------------  -------------------  -------
+12044  Mon, 18 Mar 2024 14:22:10 +...  Statements <statements@example.com>  Quarterly statement  9.0 MiB
+12087  Thu, 05 Dec 2024 09:08:33 +...  Receipts <receipts@example.com>      Travel receipt       7.4 MiB
+
+Pass --execute to mark these messages \Deleted.
+```
+
+<!-- doc-example:end delete-dry-run -->
+
+To show more message summaries:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --sample-limit 50
 ```
 
 ### Dry run: messages larger than a size
@@ -131,46 +161,6 @@ Messages in `Archive` received between January 1, 2020, and January 1, 2023:
 
 ```console
 uv run imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01-01
-```
-
-### Preview affected messages
-
-Inspect the actual messages that would be affected before committing. Shows UID, Date, From,
-Subject, and size for the first 10 matches:
-
-<!-- doc-example:start delete-preview -->
-
-```console
-$ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview
-
-Mailbox              Archive
-Mode                 dry-run
-Criteria             BEFORE 01-Jan-2025
-Messages in mailbox  1,250
-Search matches       390
-Filter matches       390
-Affected messages    390
-Affected size        2.8 GiB
-Marked deleted       0
-Expunged             0
-Expunge method       none
-UID sample           12044, 12045, 12046, 12047, 12048
-
-Preview:
-UID    Date                            From                                 Subject              Size
------  ------------------------------  -----------------------------------  -------------------  -------
-12044  Mon, 18 Mar 2024 14:22:10 +...  Statements <statements@example.com>  Quarterly statement  9.0 MiB
-12087  Thu, 05 Dec 2024 09:08:33 +...  Receipts <receipts@example.com>      Travel receipt       7.4 MiB
-
-Pass --execute to mark these messages \Deleted.
-```
-
-<!-- doc-example:end delete-preview -->
-
-Show more:
-
-```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --preview --preview-limit 50
 ```
 
 ### Match everything with a size filter
@@ -250,7 +240,7 @@ Example JSON output:
   "marked_deleted_messages": 0,
   "matched_messages": 390,
   "mode": "dry-run",
-  "preview_messages": [],
+  "sample_messages": [],
   "search_criteria": ["BEFORE", "01-Jan-2025"],
   "searched_messages": 390,
   "selected_messages": 1250,

@@ -25,25 +25,18 @@
       "preLaunchTask": "uv: sync"
     },
     {
-      "name": "imap-cleanup: delete preview",
+      "name": "imap-cleanup: delete dry run",
       "type": "debugpy",
       "request": "launch",
       "module": "imap_cleanup",
-      "args": [
-        "delete",
-        "--mailbox",
-        "Archive",
-        "--before",
-        "2025-01-01",
-        "--preview"
-      ],
+      "args": ["delete", "--mailbox", "Archive", "--before", "2025-01-01"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true,
       "preLaunchTask": "uv: sync"
     },
     {
-      "name": "imap-cleanup: delete preview json",
+      "name": "imap-cleanup: delete dry run json",
       "type": "debugpy",
       "request": "launch",
       "module": "imap_cleanup",
@@ -53,7 +46,6 @@
         "Archive",
         "--before",
         "2025-01-01",
-        "--preview",
         "--format",
         "json"
       ],
@@ -95,13 +87,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "imap_cleanup",
-      "args": [
-        "delete-folder",
-        "--mailbox",
-        "Old Projects",
-        "--recursive",
-        "--preview"
-      ],
+      "args": ["delete-folder", "--mailbox", "Old Projects", "--recursive"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true,
@@ -117,7 +103,6 @@
         "--mailbox",
         "Old Projects",
         "--recursive",
-        "--preview",
         "--format",
         "json"
       ],

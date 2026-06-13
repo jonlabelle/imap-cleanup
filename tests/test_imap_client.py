@@ -28,8 +28,8 @@ class FakeImapConnection:
         search_responses: dict[str, ImapResponse] | None = None,
         fetch_response: ImapResponse | None = None,
         fetch_responses: dict[str, ImapResponse] | None = None,
-        preview_fetch_response: ImapResponse | None = None,
-        preview_fetch_responses: dict[str, ImapResponse] | None = None,
+        sample_fetch_response: ImapResponse | None = None,
+        sample_fetch_responses: dict[str, ImapResponse] | None = None,
         store_response: ImapResponse | None = None,
         uid_expunge_response: ImapResponse | None = None,
         quota_response: ImapResponse | None = None,
@@ -54,7 +54,7 @@ class FakeImapConnection:
             ],
         )
         self.fetch_responses = fetch_responses or {}
-        self.preview_fetch_response = preview_fetch_response or (
+        self.sample_fetch_response = sample_fetch_response or (
             "OK",
             [
                 (
@@ -73,7 +73,7 @@ class FakeImapConnection:
                 b")",
             ],
         )
-        self.preview_fetch_responses = preview_fetch_responses or {}
+        self.sample_fetch_responses = sample_fetch_responses or {}
         self.store_response = store_response or ("OK", [])
         self.uid_expunge_response = uid_expunge_response or ("OK", [])
         self.quota_response = quota_response or (
@@ -119,9 +119,9 @@ class FakeImapConnection:
         if command == "SEARCH":
             return self.search_responses.get(self.selected_mailbox or "", self.search_response)
         if command == "FETCH" and any(isinstance(arg, str) and "BODY.PEEK" in arg for arg in args):
-            return self.preview_fetch_responses.get(
+            return self.sample_fetch_responses.get(
                 self.selected_mailbox or "",
-                self.preview_fetch_response,
+                self.sample_fetch_response,
             )
         if command == "STORE":
             return self.store_response
@@ -251,7 +251,7 @@ def test_delete_dry_run_filters_by_size_without_store() -> None:
     assert not any(call == "STORE" for call, _ in client.calls)
 
 
-def test_delete_dry_run_preview_fetches_capped_message_summaries_without_store() -> None:
+def test_delete_dry_run_fetches_capped_message_summaries_without_store() -> None:
     client = FakeImapConnection()
 
     report = collect_deletion_report(
@@ -259,20 +259,19 @@ def test_delete_dry_run_preview_fetches_capped_message_summaries_without_store()
         DeletionOptions(
             mailbox="INBOX",
             all_messages=True,
-            preview=True,
-            preview_limit=1,
+            sample_limit=1,
         ),
     )
 
     assert report.mode == "dry-run"
     assert report.affected_messages == 2
-    assert len(report.preview_messages) == 1
-    assert report.preview_messages[0].uid == 101
-    assert report.preview_messages[0].date == "Wed, 01 Jan 2025 12:00:00 +0000"
-    assert report.preview_messages[0].from_header == "Sender One <one@example.com>"
-    assert report.preview_messages[0].subject == "First"
-    assert report.preview_messages[0].size_bytes == 10
-    assert "Preview limited to first 1 of 2 affected messages." in report.warnings
+    assert len(report.sample_messages) == 1
+    assert report.sample_messages[0].uid == 101
+    assert report.sample_messages[0].date == "Wed, 01 Jan 2025 12:00:00 +0000"
+    assert report.sample_messages[0].from_header == "Sender One <one@example.com>"
+    assert report.sample_messages[0].subject == "First"
+    assert report.sample_messages[0].size_bytes == 10
+    assert "Showing first 1 of 2 affected messages." in report.warnings
     assert (
         "uid",
         (
@@ -385,7 +384,7 @@ def test_delete_folder_dry_run_reads_status_without_delete() -> None:
     assert report.deleted is False
     assert ("status", ('"Archive"', "(MESSAGES SIZE)")) in client.calls
     assert not any(call == "delete" for call, _ in client.calls)
-    assert not any(call == "select" for call, _ in client.calls)
+    assert len(report.mailboxes[0].sample_messages) == 2
 
 
 def test_delete_folder_dry_run_falls_back_to_rfc822_size_without_status_size() -> None:
@@ -476,7 +475,7 @@ def test_delete_folder_recursive_dry_run_reports_selectable_descendants() -> Non
     assert not any(call == "delete" for call, _ in client.calls)
 
 
-def test_delete_folder_recursive_dry_run_preview_fetches_capped_messages_without_delete() -> None:
+def test_delete_folder_recursive_dry_run_fetches_capped_messages_without_delete() -> None:
     client = FakeImapConnection(
         capabilities=b"IMAP4rev1 STATUS=SIZE",
         list_data=[
@@ -487,7 +486,7 @@ def test_delete_folder_recursive_dry_run_preview_fetches_capped_messages_without
             '"Archive"': ("OK", [b"101 102"]),
             '"Archive/2025"': ("OK", [b"201 202"]),
         },
-        preview_fetch_responses={
+        sample_fetch_responses={
             '"Archive"': (
                 "OK",
                 [
@@ -524,18 +523,18 @@ def test_delete_folder_recursive_dry_run_preview_fetches_capped_messages_without
 
     report = collect_folder_deletion_report(
         client,
-        FolderDeletionOptions(mailbox="Archive", recursive=True, preview=True, preview_limit=3),
+        FolderDeletionOptions(mailbox="Archive", recursive=True, sample_limit=3),
     )
 
-    assert [[message.uid for message in item.preview_messages] for item in report.mailboxes] == [
+    assert [[message.uid for message in item.sample_messages] for item in report.mailboxes] == [
         [101, 102],
         [201],
     ]
-    assert report.mailboxes[0].preview_messages[0].subject == "First"
-    assert report.mailboxes[1].preview_messages[0].from_header == (
+    assert report.mailboxes[0].sample_messages[0].subject == "First"
+    assert report.mailboxes[1].sample_messages[0].from_header == (
         "Sender Three <three@example.com>"
     )
-    assert "Preview limited to first 3 of 4 affected messages." in report.warnings
+    assert "Showing first 3 of 4 affected messages." in report.warnings
     assert (
         "uid",
         (

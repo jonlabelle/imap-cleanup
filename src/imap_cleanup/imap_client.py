@@ -96,8 +96,7 @@ class DeletionOptions:
     larger_than: int | None = None
     smaller_than: int | None = None
     limit: int | None = None
-    preview: bool = False
-    preview_limit: int = 10
+    sample_limit: int = 10
     execute: bool = False
     expunge: bool = False
     allow_folder_expunge: bool = False
@@ -108,8 +107,7 @@ class FolderDeletionOptions:
     mailbox: str
     execute: bool = False
     recursive: bool = False
-    preview: bool = False
-    preview_limit: int = 10
+    sample_limit: int = 10
 
 
 def build_account_report(config: ConnectionConfig) -> AccountReport:
@@ -214,14 +212,13 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
     matched_uids = _filter_uids_by_size(searched_uids, sizes, options)
     affected_uids = matched_uids[: options.limit] if options.limit is not None else matched_uids
     warnings = _deletion_warnings(options, searched_uids, sizes)
-    preview_messages: list[MessageSummary] = []
-    if options.preview and affected_uids:
-        preview_uids = affected_uids[: options.preview_limit]
-        preview_messages = _fetch_message_summaries(client, preview_uids, sizes)
-        if len(preview_uids) < len(affected_uids):
+    sample_messages: list[MessageSummary] = []
+    if not options.execute and affected_uids:
+        sample_uids = affected_uids[: options.sample_limit]
+        sample_messages = _fetch_message_summaries(client, sample_uids, sizes)
+        if len(sample_uids) < len(affected_uids):
             warnings.append(
-                "Preview limited to first "
-                f"{len(preview_uids):,} of {len(affected_uids):,} affected messages."
+                f"Showing first {len(sample_uids):,} of {len(affected_uids):,} affected messages."
             )
 
     marked_deleted_messages = 0
@@ -255,7 +252,7 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
         expunge_method=expunge_method,
         uid_sample=affected_uids[:10],
         warnings=warnings,
-        preview_messages=preview_messages,
+        sample_messages=sample_messages,
     )
 
 
@@ -268,7 +265,7 @@ def collect_folder_deletion_report(
     supports_status_size = "STATUS=SIZE" in capabilities
     mode: DeletionMode = "execute" if options.execute else "dry-run"
     items: list[FolderDeletionItem] = []
-    remaining_preview_messages = options.preview_limit
+    remaining_sample_messages = options.sample_limit
     for mailbox in mailboxes:
         item = _folder_deletion_item(
             client,
@@ -276,14 +273,14 @@ def collect_folder_deletion_report(
             supports_status_size=supports_status_size,
             allow_rfc822_size=mode == "dry-run",
         )
-        if options.preview and item.messages and remaining_preview_messages > 0:
-            preview_messages = _fetch_folder_preview_messages(
+        if not options.execute and item.messages and remaining_sample_messages > 0:
+            sample_messages = _fetch_folder_sample_messages(
                 client,
                 mailbox,
-                remaining_preview_messages,
+                remaining_sample_messages,
             )
-            remaining_preview_messages -= len(preview_messages)
-            item = replace(item, preview_messages=preview_messages)
+            remaining_sample_messages -= len(sample_messages)
+            item = replace(item, sample_messages=sample_messages)
         items.append(item)
     warnings = _folder_deletion_warnings(options) + warnings
 
@@ -300,11 +297,9 @@ def collect_folder_deletion_report(
     messages = sum(item.messages for item in items)
     size_bytes = _folder_deletion_total_size(items)
     deleted = bool(items) and all(item.deleted for item in items)
-    previewed_messages = sum(len(item.preview_messages) for item in items)
-    if options.preview and previewed_messages < messages:
-        warnings.append(
-            f"Preview limited to first {previewed_messages:,} of {messages:,} affected messages."
-        )
+    sampled_messages = sum(len(item.sample_messages) for item in items)
+    if not options.execute and sampled_messages < messages:
+        warnings.append(f"Showing first {sampled_messages:,} of {messages:,} affected messages.")
 
     return FolderDeletionReport(
         mailbox=options.mailbox,
@@ -480,7 +475,7 @@ def _folder_deletion_item(
     )
 
 
-def _fetch_folder_preview_messages(
+def _fetch_folder_sample_messages(
     client: ImapConnection,
     mailbox: str,
     limit: int,

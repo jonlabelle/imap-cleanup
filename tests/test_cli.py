@@ -87,8 +87,7 @@ def test_delete_command_parses_selectors() -> None:
             "25MiB",
             "--limit",
             "10",
-            "--preview",
-            "--preview-limit",
+            "--sample-limit",
             "3",
             "--execute",
         ]
@@ -99,8 +98,7 @@ def test_delete_command_parses_selectors() -> None:
     assert args.before.isoformat() == "2026-01-01"
     assert args.larger_than == 25 * 1024 * 1024
     assert args.limit == 10
-    assert args.preview is True
-    assert args.preview_limit == 3
+    assert args.sample_limit == 3
     assert args.execute is True
 
 
@@ -118,8 +116,7 @@ def test_delete_folder_command_parses_execution_flags() -> None:
             "Old Projects",
             "--execute",
             "--recursive",
-            "--preview",
-            "--preview-limit",
+            "--sample-limit",
             "4",
             "--format",
             "json",
@@ -130,6 +127,5 @@ def test_delete_folder_command_parses_execution_flags() -> None:
     assert args.mailbox == "Old Projects"
     assert args.execute is True
     assert args.recursive is True
-    assert args.preview is True
-    assert args.preview_limit == 4
+    assert args.sample_limit == 4
     assert args.format == "json"
