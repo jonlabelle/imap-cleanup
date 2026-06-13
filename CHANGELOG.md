@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.10.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.9.0...v1.10.0) (2026-06-13)
+
+
+### Features
+
+* add --preview and --preview-limit options to delete-folder command for message inspection ([10ce195](https://github.com/jonlabelle/imap-cleanup/commit/10ce1950f243e958d74b422441db526df4c142b7))
+
 # [1.9.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.8.0...v1.9.0) (2026-06-12)
 
 
