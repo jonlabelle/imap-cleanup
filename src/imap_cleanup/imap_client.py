@@ -108,6 +108,8 @@ class FolderDeletionOptions:
     mailbox: str
     execute: bool = False
     recursive: bool = False
+    preview: bool = False
+    preview_limit: int = 10
 
 
 def build_account_report(config: ConnectionConfig) -> AccountReport:
@@ -265,15 +267,24 @@ def collect_folder_deletion_report(
     mailboxes, warnings = _folder_deletion_mailboxes(client, options)
     supports_status_size = "STATUS=SIZE" in capabilities
     mode: DeletionMode = "execute" if options.execute else "dry-run"
-    items = [
-        _folder_deletion_item(
+    items: list[FolderDeletionItem] = []
+    remaining_preview_messages = options.preview_limit
+    for mailbox in mailboxes:
+        item = _folder_deletion_item(
             client,
             mailbox,
             supports_status_size=supports_status_size,
             allow_rfc822_size=mode == "dry-run",
         )
-        for mailbox in mailboxes
-    ]
+        if options.preview and item.messages and remaining_preview_messages > 0:
+            preview_messages = _fetch_folder_preview_messages(
+                client,
+                mailbox,
+                remaining_preview_messages,
+            )
+            remaining_preview_messages -= len(preview_messages)
+            item = replace(item, preview_messages=preview_messages)
+        items.append(item)
     warnings = _folder_deletion_warnings(options) + warnings
 
     if options.execute:
@@ -289,6 +300,11 @@ def collect_folder_deletion_report(
     messages = sum(item.messages for item in items)
     size_bytes = _folder_deletion_total_size(items)
     deleted = bool(items) and all(item.deleted for item in items)
+    previewed_messages = sum(len(item.preview_messages) for item in items)
+    if options.preview and previewed_messages < messages:
+        warnings.append(
+            f"Preview limited to first {previewed_messages:,} of {messages:,} affected messages."
+        )
 
     return FolderDeletionReport(
         mailbox=options.mailbox,
@@ -462,6 +478,30 @@ def _folder_deletion_item(
         size_method=size_method,
         deleted=False,
     )
+
+
+def _fetch_folder_preview_messages(
+    client: ImapConnection,
+    mailbox: str,
+    limit: int,
+) -> list[MessageSummary]:
+    mailbox_arg = quote_mailbox(mailbox)
+    select_data = _call(
+        f"EXAMINE {mailbox_arg}",
+        lambda: client.select(mailbox_arg, readonly=True),
+    )
+    selected_messages = parse_select_count(select_data)
+    if selected_messages is None:
+        raise ImapOperationError(f'EXAMINE "{mailbox}" did not return a message count')
+    if selected_messages == 0:
+        return []
+
+    search_data = _call(
+        f"UID SEARCH {mailbox_arg}",
+        lambda: client.uid("SEARCH", None, "ALL"),
+    )
+    affected_uids = parse_uid_search_response(search_data)
+    return _fetch_message_summaries(client, affected_uids[:limit], {})
 
 
 def _folder_deletion_total_size(items: list[FolderDeletionItem]) -> int | None:

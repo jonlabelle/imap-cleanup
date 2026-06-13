@@ -59,7 +59,7 @@ Caveats:
 
 - **[`folders`](docs/folders.md)** — List all mailboxes sorted by size, with optional quota usage.
 - **[`delete`](docs/delete.md)** — Dry-run or mark messages deleted from a mailbox by date, size, or both.
-- **[`delete-folder`](docs/delete-folder.md)** — Dry-run or delete an entire mailbox/folder, optionally including child folders.
+- **[`delete-folder`](docs/delete-folder.md)** — Preview, dry-run, or delete an entire mailbox/folder, optionally including child folders.
 
 Each command page includes an Examples section with worked usage.
 
@@ -107,8 +107,8 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
-- `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
-- `imap-cleanup: delete folder recursive dry run json` — Check the same folder tree with JSON output
+- `imap-cleanup: delete folder recursive dry run` — Preview `Old Projects` and child folders before deletion
+- `imap-cleanup: delete folder recursive dry run json` — Preview the same folder tree with JSON output
 
 **Debug launch configurations:**
 
@@ -118,8 +118,8 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: delete preview json` — Preview the same delete filter with JSON output
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
-- `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
-- `imap-cleanup: delete folder recursive dry run json` — Check the same folder tree with JSON output
+- `imap-cleanup: delete folder recursive dry run` — Preview `Old Projects` and child folders before deletion
+- `imap-cleanup: delete folder recursive dry run json` — Preview the same folder tree with JSON output
 
 The delete preview and delete-folder entries are dry-run configurations and do not pass `--execute`.
 

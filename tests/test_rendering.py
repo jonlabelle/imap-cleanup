@@ -183,6 +183,15 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
                 size_bytes=None,
                 size_method="status-messages",
                 deleted=False,
+                preview_messages=[
+                    MessageSummary(
+                        uid=201,
+                        date="Wed, 01 Jan 2025 12:00:00 +0000",
+                        from_header="Sender <sender@example.com>",
+                        subject="Old project note",
+                        size_bytes=512,
+                    )
+                ],
             )
         ],
     )
@@ -193,6 +202,8 @@ def test_render_folder_deletion_table_includes_action_summary() -> None:
     assert "7" in table
     assert "unknown" in table
     assert "Mailboxes:" in table
+    assert "Preview:" in table
+    assert "Old project note" in table
     assert "status-messages" in table
     assert "Pass --execute" in table
     assert "Child mailboxes" in table
@@ -215,6 +226,15 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
                 size_bytes=2048,
                 size_method="status-size",
                 deleted=True,
+                preview_messages=[
+                    MessageSummary(
+                        uid=101,
+                        date="Wed, 01 Jan 2025 12:00:00 +0000",
+                        from_header="Sender <sender@example.com>",
+                        subject="Old attachment",
+                        size_bytes=2048,
+                    )
+                ],
             )
         ],
     )
@@ -231,6 +251,16 @@ def test_render_folder_deletion_json_matches_report_schema() -> None:
                 "human_size": "2.0 KiB",
                 "mailbox": "Archive",
                 "messages": 2,
+                "preview_messages": [
+                    {
+                        "date": "Wed, 01 Jan 2025 12:00:00 +0000",
+                        "from": "Sender <sender@example.com>",
+                        "human_size": "2.0 KiB",
+                        "size_bytes": 2048,
+                        "subject": "Old attachment",
+                        "uid": 101,
+                    }
+                ],
                 "size_bytes": 2048,
                 "size_method": "status-size",
             }

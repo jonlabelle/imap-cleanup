@@ -214,7 +214,8 @@ def _generated_examples() -> dict[str, str]:
         ),
         "delete-json": _fenced("json", render_deletion_json(delete_json_report)),
         "delete-folder-recursive": _console_example(
-            'uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive',
+            'uv run imap-cleanup delete-folder --mailbox "Old Projects" '
+            "--recursive --preview --preview-limit 3",
             render_folder_deletion_table(delete_folder_report),
         ),
         "delete-folder-json": _fenced(
@@ -310,6 +311,7 @@ def _delete_folder_report() -> FolderDeletionReport:
         warnings=[
             "Deleting a mailbox removes messages stored in that mailbox.",
             "Recursive delete enabled; child mailboxes are deleted before parents.",
+            "Preview limited to first 3 of 340 affected messages.",
         ],
         mailboxes=[
             FolderDeletionItem(
@@ -318,6 +320,22 @@ def _delete_folder_report() -> FolderDeletionReport:
                 size_bytes=600 * 1024**2,
                 size_method="status-size",
                 deleted=False,
+                preview_messages=[
+                    MessageSummary(
+                        uid=12_044,
+                        date="Mon, 18 Mar 2024 14:22:10 +0000",
+                        from_header="Statements <statements@example.com>",
+                        subject="Quarterly statement",
+                        size_bytes=9 * 1024**2,
+                    ),
+                    MessageSummary(
+                        uid=12_087,
+                        date="Thu, 05 Dec 2024 09:08:33 +0000",
+                        from_header="Receipts <receipts@example.com>",
+                        subject="Travel receipt",
+                        size_bytes=7_759_462,
+                    ),
+                ],
             ),
             FolderDeletionItem(
                 mailbox="Old Projects/2022",
@@ -325,6 +343,15 @@ def _delete_folder_report() -> FolderDeletionReport:
                 size_bytes=1_000 * 1024**2,
                 size_method="status-size",
                 deleted=False,
+                preview_messages=[
+                    MessageSummary(
+                        uid=22_410,
+                        date="Tue, 09 Aug 2022 16:45:00 +0000",
+                        from_header="Build System <builds@example.com>",
+                        subject="Project export archive",
+                        size_bytes=13 * 1024**2,
+                    )
+                ],
             ),
         ],
     )

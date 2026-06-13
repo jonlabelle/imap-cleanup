@@ -95,7 +95,13 @@
       "type": "debugpy",
       "request": "launch",
       "module": "imap_cleanup",
-      "args": ["delete-folder", "--mailbox", "Old Projects", "--recursive"],
+      "args": [
+        "delete-folder",
+        "--mailbox",
+        "Old Projects",
+        "--recursive",
+        "--preview"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true,
@@ -111,6 +117,7 @@
         "--mailbox",
         "Old Projects",
         "--recursive",
+        "--preview",
         "--format",
         "json"
       ],

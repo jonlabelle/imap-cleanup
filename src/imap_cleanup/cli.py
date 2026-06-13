@@ -164,6 +164,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also delete selectable child mailboxes below --mailbox.",
     )
+    delete_folder.add_argument(
+        "--preview",
+        action="store_true",
+        help="Fetch and show a capped list of affected message summaries.",
+    )
+    delete_folder.add_argument(
+        "--preview-limit",
+        type=_positive_int,
+        default=10,
+        help="Limit how many affected message summaries --preview fetches. Defaults to 10.",
+    )
     delete_folder.set_defaults(func=_run_delete_folder)
     return parser
 
@@ -231,6 +242,8 @@ def _run_delete_folder(args: argparse.Namespace) -> int:
         mailbox=str(args.mailbox),
         execute=bool(args.execute),
         recursive=bool(args.recursive),
+        preview=bool(args.preview),
+        preview_limit=args.preview_limit,
     )
 
     try:

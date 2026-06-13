@@ -99,6 +99,12 @@ def render_folder_deletion_table(report: FolderDeletionReport) -> str:
     if report.mailboxes:
         lines.append("")
         lines.extend(_render_folder_deletion_mailbox_table(report.mailboxes))
+    preview_items = [item for item in report.mailboxes if item.preview_messages]
+    if preview_items:
+        for item in preview_items:
+            title = "Preview" if len(report.mailboxes) == 1 else f"Preview ({item.mailbox})"
+            lines.append("")
+            lines.extend(_render_message_preview_table(item.preview_messages, title=title))
     if report.warnings:
         lines.append("")
         lines.append("Warnings:")
@@ -150,7 +156,11 @@ def _render_folder_table(folders: list[FolderReport]) -> list[str]:
     return lines
 
 
-def _render_message_preview_table(messages: list[MessageSummary]) -> list[str]:
+def _render_message_preview_table(
+    messages: list[MessageSummary],
+    *,
+    title: str = "Preview",
+) -> list[str]:
     rows = [
         (
             str(message.uid),
@@ -167,7 +177,7 @@ def _render_message_preview_table(messages: list[MessageSummary]) -> list[str]:
         for index in range(len(headers))
     ]
 
-    lines = ["Preview:"]
+    lines = [f"{title}:"]
     lines.append(_format_row(headers, widths))
     lines.append(_format_row(tuple("-" * width for width in widths), widths))
     lines.extend(_format_row(row, widths) for row in rows)
@@ -274,15 +284,7 @@ def _deletion_report_to_dict(report: DeletionReport) -> dict[str, Any]:
         "selected_messages": report.selected_messages,
         "uid_sample": report.uid_sample,
         "preview_messages": [
-            {
-                "uid": message.uid,
-                "date": message.date,
-                "from": message.from_header,
-                "subject": message.subject,
-                "size_bytes": message.size_bytes,
-                "human_size": format_bytes(message.size_bytes),
-            }
-            for message in report.preview_messages
+            _message_summary_to_dict(message) for message in report.preview_messages
         ],
         "warnings": report.warnings,
     }
@@ -301,6 +303,9 @@ def _folder_deletion_report_to_dict(report: FolderDeletionReport) -> dict[str, A
                 else None,
                 "mailbox": item.mailbox,
                 "messages": item.messages,
+                "preview_messages": [
+                    _message_summary_to_dict(message) for message in item.preview_messages
+                ],
                 "size_bytes": item.size_bytes,
                 "size_method": item.size_method,
             }
@@ -312,6 +317,17 @@ def _folder_deletion_report_to_dict(report: FolderDeletionReport) -> dict[str, A
         "size_bytes": report.size_bytes,
         "size_method": report.size_method,
         "warnings": report.warnings,
+    }
+
+
+def _message_summary_to_dict(message: MessageSummary) -> dict[str, Any]:
+    return {
+        "uid": message.uid,
+        "date": message.date,
+        "from": message.from_header,
+        "subject": message.subject,
+        "size_bytes": message.size_bytes,
+        "human_size": format_bytes(message.size_bytes),
     }
 
 

@@ -97,6 +97,7 @@ class FolderDeletionItem:
     size_bytes: int | None
     size_method: FolderDeletionSizeMethod
     deleted: bool
+    preview_messages: list[MessageSummary] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
