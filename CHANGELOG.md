@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.11.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.10.0...v1.11.0) (2026-06-13)
+
+
+### Features
+
+* refactor delete command, remove redundant preview option, add sample limit ([3b34c77](https://github.com/jonlabelle/imap-cleanup/commit/3b34c777fd9ddacd001d16afdb50b35d0e802cfb))
+
 # [1.10.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.9.0...v1.10.0) (2026-06-13)
 
 
