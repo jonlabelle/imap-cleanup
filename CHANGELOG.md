@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.12.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.11.0...v1.12.0) (2026-06-14)
+
+
+### Features
+
+* delete message(s) by UID ([449d8da](https://github.com/jonlabelle/imap-cleanup/commit/449d8daf6e903992043257fe9872383f542a95a4))
+
 # [1.11.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.10.0...v1.11.0) (2026-06-13)
 
 
