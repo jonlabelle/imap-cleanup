@@ -131,6 +131,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Permanently remove messages after marking them deleted.",
     )
     delete.add_argument(
+        "--uid",
+        dest="uids",
+        type=_positive_int,
+        action="append",
+        metavar="UID",
+        help=(
+            "Target specific messages by UID. Repeat to specify multiple UIDs."
+            " Mutually exclusive with --all, --before, --since, and size filters."
+        ),
+    )
+    delete.add_argument(
         "--allow-folder-expunge",
         action="store_true",
         help="Allow folder-wide EXPUNGE when UID-scoped expunge is unavailable.",
@@ -166,6 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="How many message summaries to show in dry-run output. Defaults to 10.",
     )
     delete_folder.set_defaults(func=_run_delete_folder)
+
     return parser
 
 
@@ -197,6 +209,7 @@ def _run_delete(args: argparse.Namespace) -> int:
 
     options = DeletionOptions(
         mailbox=str(args.mailbox),
+        uids=sorted(set(args.uids)) if args.uids else [],
         all_messages=bool(args.all_messages),
         before=args.before,
         since=args.since,
@@ -303,8 +316,10 @@ def _add_format_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def _validate_delete_args(args: argparse.Namespace) -> str | None:
+    has_uid = bool(args.uids)
     has_selector = any(
         (
+            has_uid,
             args.all_messages,
             args.before is not None,
             args.since is not None,
@@ -313,7 +328,21 @@ def _validate_delete_args(args: argparse.Namespace) -> str | None:
         )
     )
     if not has_selector:
-        return "delete requires at least one selector: --all, --before, --since, or a size filter"
+        return (
+            "delete requires at least one selector:"
+            " --all, --before, --since, --uid, or a size filter"
+        )
+    if has_uid and (
+        args.all_messages
+        or args.before is not None
+        or args.since is not None
+        or args.larger_than is not None
+        or args.smaller_than is not None
+    ):
+        return (
+            "--uid cannot be combined with"
+            " --all, --before, --since, --larger-than, or --smaller-than"
+        )
     if args.all_messages and (args.before is not None or args.since is not None):
         return "--all cannot be combined with --before or --since"
     if args.since is not None and args.before is not None and args.since >= args.before:

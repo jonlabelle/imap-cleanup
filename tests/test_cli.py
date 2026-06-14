@@ -129,3 +129,31 @@ def test_delete_folder_command_parses_execution_flags() -> None:
     assert args.recursive is True
     assert args.sample_limit == 4
     assert args.format == "json"
+
+
+def test_delete_command_parses_uid_selector() -> None:
+    args = build_parser().parse_args(
+        [
+            "delete",
+            "--host",
+            "imap.example.com",
+            "--username",
+            "user@example.com",
+            "--password",
+            "secret",
+            "--mailbox",
+            "Archive",
+            "--uid",
+            "101",
+            "--uid",
+            "202",
+            "--execute",
+            "--format",
+            "json",
+        ]
+    )
+
+    assert args.command == "delete"
+    assert args.uids == [101, 202]
+    assert args.execute is True
+    assert args.format == "json"

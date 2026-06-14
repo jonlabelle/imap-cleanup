@@ -5,7 +5,7 @@ from __future__ import annotations
 import imaplib
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Protocol, cast
 
@@ -90,6 +90,7 @@ class ConnectionConfig:
 @dataclass(frozen=True)
 class DeletionOptions:
     mailbox: str
+    uids: list[int] = field(default_factory=list)
     all_messages: bool = False
     before: date | None = None
     since: date | None = None
@@ -202,24 +203,44 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
     if selected_messages is None:
         raise ImapOperationError(f"{select_operation} {mailbox_arg} did not return a message count")
 
-    search_criteria = _search_criteria(options)
-    search_data = _call(
-        f"UID SEARCH {mailbox_arg}",
-        lambda: client.uid("SEARCH", None, *search_criteria),
-    )
-    searched_uids = parse_uid_search_response(search_data)
-    sizes = _fetch_uid_sizes(client, searched_uids)
-    matched_uids = _filter_uids_by_size(searched_uids, sizes, options)
-    affected_uids = matched_uids[: options.limit] if options.limit is not None else matched_uids
-    warnings = _deletion_warnings(options, searched_uids, sizes)
-    sample_messages: list[MessageSummary] = []
-    if not options.execute and affected_uids:
-        sample_uids = affected_uids[: options.sample_limit]
-        sample_messages = _fetch_message_summaries(client, sample_uids, sizes)
-        if len(sample_uids) < len(affected_uids):
-            warnings.append(
-                f"Showing first {len(sample_uids):,} of {len(affected_uids):,} affected messages."
-            )
+    if options.uids:
+        affected_uids = options.uids
+        searched_count = len(affected_uids)
+        matched_count = len(affected_uids)
+        search_criteria = ["UID", _uid_set(affected_uids)]
+        sizes = _fetch_uid_sizes(client, affected_uids)
+        warnings: list[str] = []
+        sample_messages: list[MessageSummary] = []
+        if not options.execute:
+            sample_uids = affected_uids[: options.sample_limit]
+            sample_messages = _fetch_message_summaries(client, sample_uids, sizes)
+            if len(sample_uids) < len(affected_uids):
+                warnings.append(
+                    f"Showing first {len(sample_uids):,} of"
+                    f" {len(affected_uids):,} affected messages."
+                )
+    else:
+        search_criteria = _search_criteria(options)
+        search_data = _call(
+            f"UID SEARCH {mailbox_arg}",
+            lambda: client.uid("SEARCH", None, *search_criteria),
+        )
+        searched_uids = parse_uid_search_response(search_data)
+        sizes = _fetch_uid_sizes(client, searched_uids)
+        matched_uids = _filter_uids_by_size(searched_uids, sizes, options)
+        affected_uids = matched_uids[: options.limit] if options.limit is not None else matched_uids
+        searched_count = len(searched_uids)
+        matched_count = len(matched_uids)
+        warnings = _deletion_warnings(options, searched_uids, sizes)
+        sample_messages = []
+        if not options.execute and affected_uids:
+            sample_uids = affected_uids[: options.sample_limit]
+            sample_messages = _fetch_message_summaries(client, sample_uids, sizes)
+            if len(sample_uids) < len(affected_uids):
+                warnings.append(
+                    f"Showing first {len(sample_uids):,} of"
+                    f" {len(affected_uids):,} affected messages."
+                )
 
     marked_deleted_messages = 0
     expunged_messages = 0
@@ -243,8 +264,8 @@ def collect_deletion_report(client: ImapConnection, options: DeletionOptions) ->
         mode=mode,
         search_criteria=search_criteria,
         selected_messages=selected_messages,
-        searched_messages=len(searched_uids),
-        matched_messages=len(matched_uids),
+        searched_messages=searched_count,
+        matched_messages=matched_count,
         affected_messages=len(affected_uids),
         affected_size_bytes=sum(sizes.get(uid, 0) for uid in affected_uids),
         marked_deleted_messages=marked_deleted_messages,

@@ -36,6 +36,7 @@ At least one selector is required. They control which messages are matched:
 | `--larger-than SIZE`  | Only messages larger than SIZE (applied locally after IMAP search)  |
 | `--smaller-than SIZE` | Only messages smaller than SIZE (applied locally after IMAP search) |
 | `--all`               | Match all messages before applying size filters                     |
+| `--uid UID`           | Target one or more specific messages by UID (repeatable)            |
 
 **Rules:**
 
@@ -43,6 +44,7 @@ At least one selector is required. They control which messages are matched:
 - When both `--since` and `--before` are given, `--since` must be the earlier date.
 - When both `--larger-than` and `--smaller-than` are given, `--larger-than` must be the smaller value.
 - `--larger-than` and `--smaller-than` can be freely combined with date selectors.
+- `--uid` is mutually exclusive with `--all`, `--before`, `--since`, `--larger-than`, and `--smaller-than`.
 
 ## Size units
 
@@ -54,20 +56,21 @@ Examples: `500B`, `25MiB`, `1.5GiB`, `500MB`
 
 ## All flags
 
-| Flag                     | Default | Description                                                                     |
-| ------------------------ | ------- | ------------------------------------------------------------------------------- |
-| `--mailbox`              | —       | Mailbox to operate on. Required.                                                |
-| `--before`               | —       | Match messages before this date.                                                |
-| `--since`                | —       | Match messages on or after this date.                                           |
-| `--larger-than`          | —       | Filter by minimum message size.                                                 |
-| `--smaller-than`         | —       | Filter by maximum message size.                                                 |
-| `--all`                  | —       | Match every message (before size filters).                                      |
-| `--limit N`              | —       | Cap how many matched messages are affected.                                     |
-| `--sample-limit N`       | `10`    | How many message summaries to show in dry-run output.                           |
-| `--execute`              | off     | Mark matched messages `\Deleted`. Without this, always a dry run.               |
-| `--expunge`              | off     | Permanently remove messages after marking deleted. Requires `--execute`.        |
-| `--allow-folder-expunge` | off     | Permit folder-wide EXPUNGE when the server lacks UIDPLUS. Requires `--expunge`. |
-| `--format`               | `table` | Output format: `table` or `json`.                                               |
+| Flag                     | Default | Description                                                                           |
+| ------------------------ | ------- | ------------------------------------------------------------------------------------- |
+| `--mailbox`              | —       | Mailbox to operate on. Required.                                                      |
+| `--before`               | —       | Match messages before this date.                                                      |
+| `--since`                | —       | Match messages on or after this date.                                                 |
+| `--larger-than`          | —       | Filter by minimum message size.                                                       |
+| `--smaller-than`         | —       | Filter by maximum message size.                                                       |
+| `--all`                  | —       | Match every message (before size filters).                                            |
+| `--uid UID`              | —       | Target specific messages by UID. Repeatable. Mutually exclusive with other selectors. |
+| `--limit N`              | —       | Cap how many matched messages are affected.                                           |
+| `--sample-limit N`       | `10`    | How many message summaries to show in dry-run output.                                 |
+| `--execute`              | off     | Mark matched messages `\Deleted`. Without this, always a dry run.                     |
+| `--expunge`              | off     | Permanently remove messages after marking deleted. Requires `--execute`.              |
+| `--allow-folder-expunge` | off     | Permit folder-wide EXPUNGE when the server lacks UIDPLUS. Requires `--expunge`.       |
+| `--format`               | `table` | Output format: `table` or `json`.                                                     |
 
 ## Output fields
 
@@ -223,6 +226,31 @@ uv run imap-cleanup delete \
 
 ```console
 uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
+```
+
+### Delete specific messages by UID
+
+Dry run — preview one or more messages by UID:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
+```
+
+Mark them deleted:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --execute
+```
+
+Mark deleted and expunge in one run:
+
+```console
+uv run imap-cleanup delete \
+  --mailbox Archive \
+  --uid 12044 \
+  --uid 12087 \
+  --execute \
+  --expunge
 ```
 
 Example JSON output:

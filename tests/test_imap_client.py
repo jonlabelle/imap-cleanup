@@ -647,3 +647,79 @@ def test_delete_folder_recursive_skips_noselect_parent() -> None:
     assert report.size_bytes == 28
     assert report.size_method == "rfc822-size"
     assert any("not selectable" in warning for warning in report.warnings)
+
+
+def test_delete_by_uid_dry_run_fetches_sizes_and_summaries_without_store() -> None:
+    client = FakeImapConnection()
+
+    report = collect_deletion_report(
+        client,
+        DeletionOptions(mailbox="INBOX", uids=[101, 102]),
+    )
+
+    assert report.mode == "dry-run"
+    assert report.mailbox == "INBOX"
+    assert report.search_criteria == ["UID", "101,102"]
+    assert report.selected_messages == 2
+    assert report.searched_messages == 2
+    assert report.matched_messages == 2
+    assert report.affected_messages == 2
+    assert report.affected_size_bytes == 30
+    assert report.marked_deleted_messages == 0
+    assert report.expunged_messages == 0
+    assert report.expunge_method == "none"
+    assert report.uid_sample == [101, 102]
+    assert len(report.sample_messages) == 2
+    assert report.sample_messages[0].uid == 101
+    assert report.sample_messages[1].uid == 102
+    assert ("select", ('"INBOX"', True)) in client.calls
+    assert not any(call == "uid" and args[0] == "SEARCH" for call, args in client.calls)
+    assert not any(call == "STORE" for call, _ in client.calls)
+
+
+def test_delete_by_uid_execute_marks_given_uids_deleted() -> None:
+    client = FakeImapConnection()
+
+    report = collect_deletion_report(
+        client,
+        DeletionOptions(mailbox="INBOX", uids=[101, 102], execute=True),
+    )
+
+    assert report.mode == "execute"
+    assert report.marked_deleted_messages == 2
+    assert report.expunged_messages == 0
+    assert ("select", ('"INBOX"', False)) in client.calls
+    assert ("uid", ("STORE", "101,102", "+FLAGS.SILENT", r"(\Deleted)")) in client.calls
+
+
+def test_delete_by_uid_execute_expunges_by_uid_when_uidplus_is_supported() -> None:
+    client = FakeImapConnection(capabilities=b"IMAP4rev1 UIDPLUS")
+
+    report = collect_deletion_report(
+        client,
+        DeletionOptions(mailbox="INBOX", uids=[101, 102], execute=True, expunge=True),
+    )
+
+    assert report.expunge_method == "uid-expunge"
+    assert report.expunged_messages == 2
+    assert ("uid", ("EXPUNGE", "101,102")) in client.calls
+    assert not any(call == "expunge" for call, _ in client.calls)
+
+
+def test_delete_by_uid_execute_allows_folder_expunge_with_opt_in() -> None:
+    client = FakeImapConnection()
+
+    report = collect_deletion_report(
+        client,
+        DeletionOptions(
+            mailbox="INBOX",
+            uids=[101, 102],
+            execute=True,
+            expunge=True,
+            allow_folder_expunge=True,
+        ),
+    )
+
+    assert report.expunge_method == "folder-expunge"
+    assert report.expunged_messages == 2
+    assert ("expunge", ()) in client.calls
