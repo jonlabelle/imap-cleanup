@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.13.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.12.0...v1.13.0) (2026-06-15)
+
+
+### Features
+
+* add dry run configurations for deleting messages by UID with JSON output ([62d75e6](https://github.com/jonlabelle/imap-cleanup/commit/62d75e6bf3a4f1a5a33f9570363430c341375271))
+
 # [1.12.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.11.0...v1.12.0) (2026-06-14)
 
 
