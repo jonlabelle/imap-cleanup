@@ -8,6 +8,7 @@ and marker spacing choices, to remain stable.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -103,6 +104,29 @@ def test_generated_doc_examples_rewrite_actual_content_changes() -> None:
     assert updated != content
     assert '"c"' in updated
     assert used == {"sample"}
+
+
+def test_generated_doc_examples_include_uid_delete_table_and_json() -> None:
+    render_doc_examples = _load_render_doc_examples()
+    examples = render_doc_examples._generated_examples()
+
+    table = examples["delete-uid-dry-run"]
+    assert "$ uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087" in table
+    assert "Criteria             UID 12044,12087" in table
+    assert "UID sample           12044, 12087" in table
+    assert "Pass --execute to mark these messages \\Deleted." in table
+
+    fenced = render_doc_examples._parse_fenced_block(examples["delete-uid-json"])
+    assert fenced is not None
+    language, body = fenced
+    assert language == "json"
+
+    payload = json.loads(body)
+    assert payload["mode"] == "dry-run"
+    assert payload["search_criteria"] == ["UID", "12044,12087"]
+    assert payload["uid_sample"] == [12044, 12087]
+    assert payload["marked_deleted_messages"] == 0
+    assert [message["uid"] for message in payload["sample_messages"]] == [12044, 12087]
 
 
 def _load_render_doc_examples() -> Any:

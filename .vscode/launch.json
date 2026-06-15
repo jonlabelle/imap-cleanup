@@ -55,6 +55,46 @@
       "preLaunchTask": "uv: sync"
     },
     {
+      "name": "imap-cleanup: delete uid dry run",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": [
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--uid",
+        "12044",
+        "--uid",
+        "12087"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
+    },
+    {
+      "name": "imap-cleanup: delete uid dry run json",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "imap_cleanup",
+      "args": [
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--uid",
+        "12044",
+        "--uid",
+        "12087",
+        "--format",
+        "json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "uv: sync"
+    },
+    {
       "name": "imap-cleanup: delete folder dry run",
       "type": "debugpy",
       "request": "launch",

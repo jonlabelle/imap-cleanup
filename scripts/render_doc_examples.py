@@ -199,6 +199,7 @@ def _generated_examples() -> dict[str, str]:
     folders_report = _folders_report()
     delete_report = _delete_report()
     delete_json_report = _delete_json_report()
+    delete_uid_report = _delete_uid_report()
     delete_folder_report = _delete_folder_report()
     delete_folder_json_report = _delete_folder_json_report()
 
@@ -213,6 +214,11 @@ def _generated_examples() -> dict[str, str]:
             render_deletion_table(delete_report),
         ),
         "delete-json": _fenced("json", render_deletion_json(delete_json_report)),
+        "delete-uid-dry-run": _console_example(
+            "uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087",
+            render_deletion_table(delete_uid_report),
+        ),
+        "delete-uid-json": _fenced("json", render_deletion_json(delete_uid_report)),
         "delete-folder-recursive": _console_example(
             'uv run imap-cleanup delete-folder --mailbox "Old Projects" '
             "--recursive --sample-limit 3",
@@ -296,6 +302,40 @@ def _delete_json_report() -> DeletionReport:
         expunge_method="none",
         uid_sample=[12_044, 12_045, 12_046, 12_047, 12_048],
         warnings=[],
+    )
+
+
+def _delete_uid_report() -> DeletionReport:
+    return DeletionReport(
+        mailbox="Archive",
+        mode="dry-run",
+        search_criteria=["UID", "12044,12087"],
+        selected_messages=1_250,
+        searched_messages=2,
+        matched_messages=2,
+        affected_messages=2,
+        affected_size_bytes=17_196_646,
+        marked_deleted_messages=0,
+        expunged_messages=0,
+        expunge_method="none",
+        uid_sample=[12_044, 12_087],
+        warnings=[],
+        sample_messages=[
+            MessageSummary(
+                uid=12_044,
+                date="Mon, 18 Mar 2024 14:22:10 +0000",
+                from_header="Statements <statements@example.com>",
+                subject="Quarterly statement",
+                size_bytes=9 * 1024**2,
+            ),
+            MessageSummary(
+                uid=12_087,
+                date="Thu, 05 Dec 2024 09:08:33 +0000",
+                from_header="Receipts <receipts@example.com>",
+                subject="Travel receipt",
+                size_bytes=7_759_462,
+            ),
+        ],
     )
 
 

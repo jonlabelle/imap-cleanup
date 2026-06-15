@@ -119,6 +119,42 @@
       "problemMatcher": []
     },
     {
+      "label": "imap-cleanup: delete uid dry run",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--uid",
+        "12044",
+        "--uid",
+        "12087"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "imap-cleanup: delete uid dry run json",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "imap-cleanup",
+        "delete",
+        "--mailbox",
+        "Archive",
+        "--uid",
+        "12044",
+        "--uid",
+        "12087",
+        "--format",
+        "json"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "imap-cleanup: delete folder dry run",
       "type": "shell",
       "command": "uv",

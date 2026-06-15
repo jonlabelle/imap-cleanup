@@ -105,6 +105,8 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
 - `imap-cleanup: delete dry run` — Dry run on `Archive` messages before `2025-01-01`
 - `imap-cleanup: delete dry run json` — Same dry run with JSON output
+- `imap-cleanup: delete uid dry run` — Dry run on `Archive` messages with UIDs `12044` and `12087`
+- `imap-cleanup: delete uid dry run json` — Same UID dry run with JSON output
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 - `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
@@ -116,12 +118,14 @@ This repository includes VS Code tasks and launch configurations for the local `
 - `imap-cleanup: folders json` — Run the `folders` command with JSON output
 - `imap-cleanup: delete dry run` — Dry run on `Archive` messages before `2025-01-01`
 - `imap-cleanup: delete dry run json` — Same dry run with JSON output
+- `imap-cleanup: delete uid dry run` — Dry run on `Archive` messages with UIDs `12044` and `12087`
+- `imap-cleanup: delete uid dry run json` — Same UID dry run with JSON output
 - `imap-cleanup: delete folder dry run` — Check the `Old Projects` folder before deletion
 - `imap-cleanup: delete folder dry run json` — Check the same folder with JSON output
 - `imap-cleanup: delete folder recursive dry run` — Check `Old Projects` and child folders before deletion
 - `imap-cleanup: delete folder recursive dry run json` — Check the same folder tree with JSON output
 
-The delete and delete-folder entries are dry-run configurations and do not pass `--execute`.
+All delete-related VS Code entries are dry-run configurations and do not pass `--execute`.
 
 </details>
 

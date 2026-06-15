@@ -228,13 +228,69 @@ uv run imap-cleanup delete \
 uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
 ```
 
+Example JSON output:
+
+<!-- doc-example:start delete-json -->
+```json
+{
+  "affected_human_size": "2.8 GiB",
+  "affected_messages": 390,
+  "affected_size_bytes": 3006477107,
+  "expunge_method": "none",
+  "expunged_messages": 0,
+  "mailbox": "Archive",
+  "marked_deleted_messages": 0,
+  "matched_messages": 390,
+  "mode": "dry-run",
+  "sample_messages": [],
+  "search_criteria": [
+    "BEFORE",
+    "01-Jan-2025"
+  ],
+  "searched_messages": 390,
+  "selected_messages": 1250,
+  "uid_sample": [
+    12044,
+    12045,
+    12046,
+    12047,
+    12048
+  ],
+  "warnings": []
+}
+```
+<!-- doc-example:end delete-json -->
+
 ### Delete specific messages by UID
 
 Dry run — preview one or more messages by UID:
 
+<!-- doc-example:start delete-uid-dry-run -->
 ```console
-uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
+$ uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
+
+Mailbox              Archive
+Mode                 dry-run
+Criteria             UID 12044,12087
+Messages in mailbox  1,250
+Search matches       2
+Filter matches       2
+Affected messages    2
+Affected size        16.4 MiB
+Marked deleted       0
+Expunged             0
+Expunge method       none
+UID sample           12044, 12087
+
+Messages:
+UID    Date                            From                                 Subject              Size
+-----  ------------------------------  -----------------------------------  -------------------  -------
+12044  Mon, 18 Mar 2024 14:22:10 +...  Statements <statements@example.com>  Quarterly statement  9.0 MiB
+12087  Thu, 05 Dec 2024 09:08:33 +...  Receipts <receipts@example.com>      Travel receipt       7.4 MiB
+
+Pass --execute to mark these messages \Deleted.
 ```
+<!-- doc-example:end delete-uid-dry-run -->
 
 Mark them deleted:
 
@@ -253,31 +309,58 @@ uv run imap-cleanup delete \
   --expunge
 ```
 
+UID-targeted JSON output:
+
+```console
+uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --format json
+```
+
 Example JSON output:
 
-<!-- doc-example:start delete-json -->
-
+<!-- doc-example:start delete-uid-json -->
 ```json
 {
-  "affected_human_size": "2.8 GiB",
-  "affected_messages": 390,
-  "affected_size_bytes": 3006477107,
+  "affected_human_size": "16.4 MiB",
+  "affected_messages": 2,
+  "affected_size_bytes": 17196646,
   "expunge_method": "none",
   "expunged_messages": 0,
   "mailbox": "Archive",
   "marked_deleted_messages": 0,
-  "matched_messages": 390,
+  "matched_messages": 2,
   "mode": "dry-run",
-  "sample_messages": [],
-  "search_criteria": ["BEFORE", "01-Jan-2025"],
-  "searched_messages": 390,
+  "sample_messages": [
+    {
+      "date": "Mon, 18 Mar 2024 14:22:10 +0000",
+      "from": "Statements <statements@example.com>",
+      "human_size": "9.0 MiB",
+      "size_bytes": 9437184,
+      "subject": "Quarterly statement",
+      "uid": 12044
+    },
+    {
+      "date": "Thu, 05 Dec 2024 09:08:33 +0000",
+      "from": "Receipts <receipts@example.com>",
+      "human_size": "7.4 MiB",
+      "size_bytes": 7759462,
+      "subject": "Travel receipt",
+      "uid": 12087
+    }
+  ],
+  "search_criteria": [
+    "UID",
+    "12044,12087"
+  ],
+  "searched_messages": 2,
   "selected_messages": 1250,
-  "uid_sample": [12044, 12045, 12046, 12047, 12048],
+  "uid_sample": [
+    12044,
+    12087
+  ],
   "warnings": []
 }
 ```
-
-<!-- doc-example:end delete-json -->
+<!-- doc-example:end delete-uid-json -->
 
 ## Expunge
 
