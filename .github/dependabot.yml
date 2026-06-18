@@ -17,7 +17,7 @@ updates:
         update-types:
           - major
     labels:
-      - python
+      - uv
       - dependencies
       - dependabot
 
