@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.17.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.16.0...v1.17.0) (2026-06-19)
+
+
+### Features
+
+* include checksums in built artifacts ([2ab9286](https://github.com/jonlabelle/imap-cleanup/commit/2ab9286c73ab7cb55d4b34f1dd84b09ff65546c8))
+
 # [1.16.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.15.0...v1.16.0) (2026-06-19)
 
 
