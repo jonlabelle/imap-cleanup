@@ -7,9 +7,13 @@
 
 ## Requirements
 
+- An [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) account. App-specific passwords are recommended when your provider supports them.
+- Windows, Linux, or macOS. See [Install](#install) for details.
+
+**Optional** (only required if installing from source; pre-built binaries include these dependencies):
+
 - Python (see [version](.python-version))
 - [uv](https://docs.astral.sh/uv/)
-- An IMAP account. App-specific passwords are recommended when your provider supports them.
 
 ## Install
 
