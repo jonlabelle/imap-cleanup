@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.18.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.17.0...v1.18.0) (2026-06-19)
+
+
+### Features
+
+* put all checksums in one artifact ([3d8969d](https://github.com/jonlabelle/imap-cleanup/commit/3d8969df97af4899b19b73d8d010d83d185943a7))
+
 # [1.17.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.16.0...v1.17.0) (2026-06-19)
 
 
