@@ -42,24 +42,16 @@
             "label": "imap-cleanup Linux x86_64"
           },
           {
-            "path": "release-binaries/**/imap-cleanup-linux-x86_64.sha256",
-            "label": "imap-cleanup Linux x86_64 SHA-256 checksum"
-          },
-          {
             "path": "release-binaries/**/imap-cleanup-macos-arm64",
             "label": "imap-cleanup macOS arm64"
-          },
-          {
-            "path": "release-binaries/**/imap-cleanup-macos-arm64.sha256",
-            "label": "imap-cleanup macOS arm64 SHA-256 checksum"
           },
           {
             "path": "release-binaries/**/imap-cleanup-windows-x86_64.exe",
             "label": "imap-cleanup Windows x86_64"
           },
           {
-            "path": "release-binaries/**/imap-cleanup-windows-x86_64.exe.sha256",
-            "label": "imap-cleanup Windows x86_64 SHA-256 checksum"
+            "path": "release-binaries/SHA256SUMS.txt",
+            "label": "SHA-256 checksums"
           }
         ]
       }

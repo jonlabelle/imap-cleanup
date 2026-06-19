@@ -46,6 +46,13 @@ jobs:
           pattern: imap-cleanup-*
           path: release-binaries
 
+      - name: Download release checksums
+        uses: actions/download-artifact@main
+        continue-on-error: true
+        with:
+          name: SHA256SUMS.txt
+          path: release-binaries
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -70,31 +70,55 @@ jobs:
           --icon assets/imap-cleanup.ico
           src/imap_cleanup/__main__.py
 
-      - name: Generate SHA-256 checksum
-        shell: bash
-        run: |
-          uv run python - <<'PY'
-          from hashlib import sha256
-          from pathlib import Path
-
-          binary = Path("dist/${{ matrix.binary-name }}")
-          checksum = binary.with_name(f"{binary.name}.sha256")
-
-          digest = sha256()
-          with binary.open("rb") as stream:
-              for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                  digest.update(chunk)
-
-          checksum.write_text(
-              f"{digest.hexdigest()}  {binary.name}\n",
-              encoding="ascii",
-          )
-          PY
-
-      - name: Upload binary and checksum artifact
+      - name: Upload binary artifact
         uses: actions/upload-artifact@main
         with:
           name: ${{ matrix.artifact-name }}
-          path: |
-            dist/${{ matrix.binary-name }}
-            dist/${{ matrix.binary-name }}.sha256
+          path: dist/${{ matrix.binary-name }}
+
+  build-checksums:
+    name: Build SHA-256 checksums
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download binary artifacts
+        uses: actions/download-artifact@main
+        with:
+          pattern: imap-cleanup-*
+          path: release-binaries
+
+      - name: Generate SHA256SUMS.txt
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+
+          binaries = sorted(
+              (
+                  path
+                  for path in Path("release-binaries").rglob("*")
+                  if path.is_file()
+              ),
+              key=lambda path: path.name,
+          )
+
+          checksums = []
+          for binary in binaries:
+              digest = sha256()
+              with binary.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                      digest.update(chunk)
+              checksums.append(f"{digest.hexdigest()}  {binary.name}\n")
+
+          Path("SHA256SUMS.txt").write_text("".join(checksums), encoding="ascii")
+          PY
+
+      - name: Upload checksum artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: SHA256SUMS.txt
+          path: SHA256SUMS.txt
