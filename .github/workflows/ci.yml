@@ -28,36 +28,9 @@ concurrency:
 jobs:
   ci:
     name: ci
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/_ci.yml
     permissions:
       contents: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@main
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@main
-        with:
-          enable-cache: true
-
-      - name: Set up Python from .python-version
-        run: uv python install "$(cat .python-version)"
-
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
-
-      - name: Lint
-        run: uv run ruff check .
-
-      - name: Format check
-        run: uv run ruff format --check .
-
-      - name: Type check
-        run: uv run mypy .
-
-      - name: Test
-        run: uv run pytest
 
   codeql:
     name: CodeQL analysis
@@ -69,54 +42,12 @@ jobs:
     uses: ./.github/workflows/_codeql.yml
 
   build-binaries:
-    name: Build binaries (${{ matrix.os }})
+    name: Build binaries
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: ci
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            pyinstaller-name: imap-cleanup-linux-x86_64
-            binary-name: imap-cleanup-linux-x86_64
-            artifact-name: imap-cleanup-Linux-x86_64
-          - os: macos-latest
-            pyinstaller-name: imap-cleanup-macos-arm64
-            binary-name: imap-cleanup-macos-arm64
-            artifact-name: imap-cleanup-macOS-arm64
-          - os: windows-latest
-            pyinstaller-name: imap-cleanup-windows-x86_64
-            binary-name: imap-cleanup-windows-x86_64.exe
-            artifact-name: imap-cleanup-Windows-x86_64
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@main
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@main
-        with:
-          enable-cache: true
-
-      - name: Set up Python from .python-version
-        shell: bash
-        run: uv python install "$(cat .python-version)"
-
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
-
-      - name: Build binary
-        run: >-
-          uv run --with pyinstaller pyinstaller
-          --onefile
-          --name ${{ matrix.pyinstaller-name }}
-          src/imap_cleanup/__main__.py
-
-      - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: dist/${{ matrix.binary-name }}
+    uses: ./.github/workflows/_build-binaries.yml
+    permissions:
+      contents: read
 
   semantic-tag:
     name: Semantic release
