@@ -30,6 +30,7 @@
     "Noselect",
     "nosetests",
     "pycache",
+    "pyinstaller",
     "pyproject",
     "pytest",
     "QUOTAROOT",

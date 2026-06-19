@@ -1,5 +1,7 @@
 {
-  "branches": ["main"],
+  "branches": [
+    "main"
+  ],
   "repositoryUrl": "https://github.com/jonlabelle/imap-cleanup.git",
   "tagFormat": "v${version}",
   "debug": false,
@@ -33,7 +35,21 @@
     [
       "@semantic-release/github",
       {
-        "releaseNameTemplate": "Release <%= nextRelease.gitTag %>"
+        "releaseNameTemplate": "Release <%= nextRelease.gitTag %>",
+        "assets": [
+          {
+            "path": "release-binaries/**/imap-cleanup-linux-x86_64",
+            "label": "imap-cleanup Linux x86_64"
+          },
+          {
+            "path": "release-binaries/**/imap-cleanup-macos-arm64",
+            "label": "imap-cleanup macOS arm64"
+          },
+          {
+            "path": "release-binaries/**/imap-cleanup-windows-x86_64.exe",
+            "label": "imap-cleanup Windows x86_64"
+          }
+        ]
       }
     ]
   ]

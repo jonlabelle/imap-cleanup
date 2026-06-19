@@ -13,7 +13,24 @@
 
 ## Install
 
-Clone the repository and install dependencies:
+**Pre-built binaries** — no Python or uv required. Download the latest binary for your platform from the [Releases](https://github.com/jonlabelle/imap-cleanup/releases/latest) page:
+
+| Platform       | File                              |
+| -------------- | --------------------------------- |
+| Linux x86_64   | `imap-cleanup-linux-x86_64`       |
+| macOS arm64    | `imap-cleanup-macos-arm64`        |
+| Windows x86_64 | `imap-cleanup-windows-x86_64.exe` |
+
+On Linux and macOS, mark the binary executable before first use:
+
+```bash
+chmod +x imap-cleanup-linux-x86_64
+./imap-cleanup-linux-x86_64 folders
+```
+
+---
+
+**From source** — clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/jonlabelle/imap-cleanup.git
