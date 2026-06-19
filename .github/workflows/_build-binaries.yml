@@ -70,8 +70,31 @@ jobs:
           --icon assets/imap-cleanup.ico
           src/imap_cleanup/__main__.py
 
-      - name: Upload binary artifact
+      - name: Generate SHA-256 checksum
+        shell: bash
+        run: |
+          uv run python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+
+          binary = Path("dist/${{ matrix.binary-name }}")
+          checksum = binary.with_name(f"{binary.name}.sha256")
+
+          digest = sha256()
+          with binary.open("rb") as stream:
+              for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                  digest.update(chunk)
+
+          checksum.write_text(
+              f"{digest.hexdigest()}  {binary.name}\n",
+              encoding="ascii",
+          )
+          PY
+
+      - name: Upload binary and checksum artifact
         uses: actions/upload-artifact@main
         with:
           name: ${{ matrix.artifact-name }}
-          path: dist/${{ matrix.binary-name }}
+          path: |
+            dist/${{ matrix.binary-name }}
+            dist/${{ matrix.binary-name }}.sha256

@@ -24,6 +24,8 @@
     "esac",
     "filevers",
     "GETQUOTAROOT",
+    "hashlib",
+    "hexdigest",
     "htmlcov",
     "IMAP",
     "imaplib",
