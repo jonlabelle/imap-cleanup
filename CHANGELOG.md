@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.15.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.14.0...v1.15.0) (2026-06-19)
+
+
+### Features
+
+* **ci:** add binary build process ([26bdb72](https://github.com/jonlabelle/imap-cleanup/commit/26bdb7251b13463fd32800a616f12a4ea07a31f0))
+
 # [1.14.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.13.0...v1.14.0) (2026-06-19)
 
 
