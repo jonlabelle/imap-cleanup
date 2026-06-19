@@ -1,3 +1,5 @@
+# CI orchestrator: runs test, CodeQL, binary builds, and semantic release.
+
 name: ci
 
 on:
@@ -26,15 +28,15 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
-  ci:
-    name: ci
-    uses: ./.github/workflows/_ci.yml
+  test:
+    name: test
+    uses: ./.github/workflows/_test.yml
     permissions:
       contents: read
 
   codeql:
     name: CodeQL analysis
-    needs: ci
+    needs: test
     permissions:
       actions: read
       contents: read
@@ -44,7 +46,7 @@ jobs:
   build-binaries:
     name: Build binaries
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: ci
+    needs: test
     uses: ./.github/workflows/_build-binaries.yml
     permissions:
       contents: read

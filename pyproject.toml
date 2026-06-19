@@ -11,6 +11,9 @@ dependencies = [
     "python-dotenv>=1.2.2",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jonlabelle/imap-cleanup"
+
 [project.scripts]
 imap-cleanup = "imap_cleanup:main"
 

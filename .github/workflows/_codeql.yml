@@ -1,3 +1,5 @@
+# CodeQL gate: static analysis for security and code quality.
+
 name: codeql
 
 on:

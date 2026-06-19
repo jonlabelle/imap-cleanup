@@ -1,6 +1,6 @@
-# CI gate: lint, format, type check, and test.
+# Test gate: lint, format, type check, and test.
 
-name: ci
+name: test
 
 on:
   workflow_call:
@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  ci:
-    name: ci
+  test:
+    name: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
