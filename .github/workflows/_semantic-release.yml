@@ -40,7 +40,7 @@ jobs:
           @semantic-release/changelog
 
       - name: Download release binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@main
         continue-on-error: true
         with:
           pattern: imap-cleanup-*

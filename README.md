@@ -15,17 +15,20 @@
 
 **Pre-built binaries** — no Python or uv required. Download the latest binary for your platform from the [Releases](https://github.com/jonlabelle/imap-cleanup/releases/latest) page:
 
-| Platform       | File                              |
-| -------------- | --------------------------------- |
-| Linux x86_64   | `imap-cleanup-linux-x86_64`       |
-| macOS arm64    | `imap-cleanup-macos-arm64`        |
-| Windows x86_64 | `imap-cleanup-windows-x86_64.exe` |
+| Platform       | File                                             |
+| -------------- | ------------------------------------------------ |
+| Linux x86_64   | [`imap-cleanup-linux-x86_64`][bin-linux]         |
+| macOS arm64    | [`imap-cleanup-macos-arm64`][bin-macos]          |
+| Windows x86_64 | [`imap-cleanup-windows-x86_64.exe`][bin-windows] |
 
 On Linux and macOS, mark the binary executable before first use:
 
-```bash
+```console
+# Make the binary executable (Linux/macOS):
 chmod +x imap-cleanup-linux-x86_64
-./imap-cleanup-linux-x86_64 folders
+
+# Show help:
+./imap-cleanup-linux-x86_64 --help
 ```
 
 ---
@@ -154,3 +157,6 @@ All delete-related VS Code entries are dry-run configurations and do not pass `-
 [ci-workflow]: https://github.com/jonlabelle/imap-cleanup/actions/workflows/ci.yml
 [latest-release]: https://github.com/jonlabelle/imap-cleanup/releases/latest
 [version-badge]: https://img.shields.io/github/v/release/jonlabelle/imap-cleanup?label=version&sort=semver
+[bin-linux]: https://github.com/jonlabelle/imap-cleanup/releases/latest/download/imap-cleanup-linux-x86_64
+[bin-macos]: https://github.com/jonlabelle/imap-cleanup/releases/latest/download/imap-cleanup-macos-arm64
+[bin-windows]: https://github.com/jonlabelle/imap-cleanup/releases/latest/download/imap-cleanup-windows-x86_64.exe
