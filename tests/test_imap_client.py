@@ -240,14 +240,14 @@ def test_delete_dry_run_filters_by_size_without_store() -> None:
     )
 
     assert report.mode == "dry-run"
-    assert report.search_criteria == ["ALL"]
+    assert report.search_criteria == ["LARGER", "10"]
     assert report.searched_messages == 2
     assert report.matched_messages == 1
     assert report.affected_messages == 1
     assert report.affected_size_bytes == 20
     assert report.uid_sample == [102]
     assert ("select", ('"INBOX"', True)) in client.calls
-    assert ("uid", ("SEARCH", None, "ALL")) in client.calls
+    assert ("uid", ("SEARCH", None, "LARGER", "10")) in client.calls
     assert not any(call == "STORE" for call, _ in client.calls)
 
 

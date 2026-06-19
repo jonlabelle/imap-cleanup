@@ -157,6 +157,9 @@ def build_folder_deletion_report(
 
 
 def open_connection(config: ConnectionConfig) -> ImapConnection:
+    # imaplib._MAXLINE defaults to 1 MB; a UID SEARCH response for a large
+    # mailbox can easily exceed that.  Raise the cap to 100 MB.
+    imaplib._MAXLINE = 100 * 1024 * 1024  # type: ignore[attr-defined]
     client_class: type[Any] = imaplib.IMAP4_SSL if config.use_ssl else imaplib.IMAP4
     return cast(ImapConnection, client_class(config.host, config.port))
 
@@ -611,6 +614,10 @@ def _search_criteria(options: DeletionOptions) -> list[str]:
         criteria.extend(["SINCE", _format_imap_date(options.since)])
     if options.before is not None:
         criteria.extend(["BEFORE", _format_imap_date(options.before)])
+    if options.larger_than is not None:
+        criteria.extend(["LARGER", str(options.larger_than)])
+    if options.smaller_than is not None:
+        criteria.extend(["SMALLER", str(options.smaller_than)])
     return criteria or ["ALL"]
 
 
