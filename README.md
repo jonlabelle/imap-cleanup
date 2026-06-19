@@ -25,14 +25,17 @@
 | macOS arm64    | [`imap-cleanup-macos-arm64`][bin-macos]          |
 | Windows x86_64 | [`imap-cleanup-windows-x86_64.exe`][bin-windows] |
 
-On Linux and macOS, mark the binary executable before first use:
+Install the downloaded binary as `imap-cleanup` (`imap-cleanup.exe` on Windows) in a
+directory on your `PATH`. For example, on Linux or macOS:
 
 ```console
-# Make the binary executable (Linux/macOS):
-chmod +x imap-cleanup-linux-x86_64
+# Linux:
+sudo install -m 755 imap-cleanup-linux-x86_64 /usr/local/bin/imap-cleanup
 
-# Show help:
-./imap-cleanup-linux-x86_64 --help
+# macOS:
+sudo install -m 755 imap-cleanup-macos-arm64 /usr/local/bin/imap-cleanup
+
+imap-cleanup --help
 ```
 
 ---
@@ -50,7 +53,7 @@ uv sync --dev
 List all mailboxes sorted by size:
 
 ```bash
-uv run imap-cleanup folders
+imap-cleanup folders
 ```
 
 > Credentials are loaded from a `.env` file or environment variables. See [Configuration](docs/configuration.md) for setup details.
@@ -60,7 +63,7 @@ Representative output:
 <!-- doc-example:start folders-table -->
 
 ```console
-$ uv run imap-cleanup folders
+$ imap-cleanup folders
 
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 

@@ -13,7 +13,7 @@
 The `delete-folder` command deletes an IMAP mailbox/folder and the messages stored in that mailbox. It is always a dry run unless you pass `--execute`. In dry-run mode a sample of affected messages is shown automatically.
 
 ```bash
-uv run imap-cleanup delete-folder --mailbox "Old Projects"
+imap-cleanup delete-folder --mailbox "Old Projects"
 ```
 
 Use `delete-folder` when you want the folder itself removed. Use [`delete`](delete.md) when you want to keep the folder but mark selected messages `\Deleted`.
@@ -65,7 +65,7 @@ on your IMAP server and account.
 Check the message count before deleting the folder itself:
 
 ```console
-uv run imap-cleanup delete-folder --mailbox "Old Projects"
+imap-cleanup delete-folder --mailbox "Old Projects"
 ```
 
 ### Execute
@@ -73,7 +73,7 @@ uv run imap-cleanup delete-folder --mailbox "Old Projects"
 Delete the folder and the messages stored in that folder:
 
 ```console
-uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
+imap-cleanup delete-folder --mailbox "Old Projects" --execute
 ```
 
 ### Recursive preview
@@ -84,7 +84,7 @@ anything:
 <!-- doc-example:start delete-folder-recursive -->
 
 ```console
-$ uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3
+$ imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3
 
 Mailbox             Old Projects
 Mode                dry-run
@@ -124,7 +124,7 @@ Pass --execute to delete these mailboxes and all messages they contain.
 Fetch a wider sample when the folder tree is large:
 
 ```console
-uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 25
+imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 25
 ```
 
 ### Recursive execute
@@ -132,13 +132,13 @@ uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-
 Delete child folders first, then the parent folder:
 
 ```console
-uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
+imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
 ```
 
 ### JSON output
 
 ```console
-uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
+imap-cleanup delete-folder --mailbox "Old Projects" --format json
 ```
 
 Example JSON output:

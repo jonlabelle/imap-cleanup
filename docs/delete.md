@@ -102,7 +102,7 @@ Includes a sample of affected message headers:
 <!-- doc-example:start delete-dry-run -->
 
 ```console
-$ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01
+$ imap-cleanup delete --mailbox Archive --before 2025-01-01
 
 Mailbox              Archive
 Mode                 dry-run
@@ -131,7 +131,7 @@ Pass --execute to mark these messages \Deleted.
 To show more message summaries:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --sample-limit 50
+imap-cleanup delete --mailbox Archive --before 2025-01-01 --sample-limit 50
 ```
 
 ### Dry run: messages larger than a size
@@ -139,7 +139,7 @@ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --sample-limit 
 Messages in `Sent` larger than 25 MiB:
 
 ```console
-uv run imap-cleanup delete --mailbox Sent --larger-than 25MiB
+imap-cleanup delete --mailbox Sent --larger-than 25MiB
 ```
 
 ### Dry run: messages smaller than a size
@@ -147,7 +147,7 @@ uv run imap-cleanup delete --mailbox Sent --larger-than 25MiB
 Messages in `Archive` smaller than 100 KiB:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --smaller-than 100KiB
+imap-cleanup delete --mailbox Archive --smaller-than 100KiB
 ```
 
 ### Dry run: combining date and size
@@ -155,7 +155,7 @@ uv run imap-cleanup delete --mailbox Archive --smaller-than 100KiB
 Messages in `Archive` older than January 1, 2025, and larger than 10 MiB:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --larger-than 10MiB
+imap-cleanup delete --mailbox Archive --before 2025-01-01 --larger-than 10MiB
 ```
 
 ### Date range
@@ -163,7 +163,7 @@ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --larger-than 1
 Messages in `Archive` received between January 1, 2020, and January 1, 2023:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01-01
+imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01-01
 ```
 
 ### Match everything with a size filter
@@ -171,7 +171,7 @@ uv run imap-cleanup delete --mailbox Archive --since 2020-01-01 --before 2023-01
 Match all messages in `Trash` larger than 1 MiB:
 
 ```console
-uv run imap-cleanup delete --mailbox Trash --all --larger-than 1MiB
+imap-cleanup delete --mailbox Trash --all --larger-than 1MiB
 ```
 
 `--all` cannot be combined with `--before` or `--since`.
@@ -181,7 +181,7 @@ uv run imap-cleanup delete --mailbox Trash --all --larger-than 1MiB
 Mark at most 100 messages even if more match:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --limit 100
+imap-cleanup delete --mailbox Archive --before 2025-01-01 --limit 100
 ```
 
 ### Execute: mark messages deleted
@@ -189,7 +189,7 @@ uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --limit 100
 Add `--execute` to actually mark matched messages `\Deleted`:
 
 ```console
-uv run imap-cleanup delete \
+imap-cleanup delete \
   --mailbox Archive \
   --before 2025-01-01 \
   --execute
@@ -201,7 +201,7 @@ Mark deleted and permanently remove in the same run. Uses `UID EXPUNGE` if the s
 UIDPLUS:
 
 ```console
-uv run imap-cleanup delete \
+imap-cleanup delete \
   --mailbox Archive \
   --before 2025-01-01 \
   --execute \
@@ -214,7 +214,7 @@ Pass `--allow-folder-expunge` to permit a folder-wide expunge. This permanently 
 messages already marked `\Deleted` in the folder, not just the ones from the current run:
 
 ```console
-uv run imap-cleanup delete \
+imap-cleanup delete \
   --mailbox Archive \
   --before 2025-01-01 \
   --execute \
@@ -225,7 +225,7 @@ uv run imap-cleanup delete \
 ### JSON output
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
+imap-cleanup delete --mailbox Archive --before 2025-01-01 --format json
 ```
 
 Example JSON output:
@@ -261,7 +261,7 @@ Dry run — preview one or more messages by UID:
 <!-- doc-example:start delete-uid-dry-run -->
 
 ```console
-$ uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
+$ imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
 
 Mailbox              Archive
 Mode                 dry-run
@@ -290,13 +290,13 @@ Pass --execute to mark these messages \Deleted.
 Mark them deleted:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --execute
+imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --execute
 ```
 
 Mark deleted and expunge in one run:
 
 ```console
-uv run imap-cleanup delete \
+imap-cleanup delete \
   --mailbox Archive \
   --uid 12044 \
   --uid 12087 \
@@ -307,7 +307,7 @@ uv run imap-cleanup delete \
 UID-targeted JSON output:
 
 ```console
-uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --format json
+imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087 --format json
 ```
 
 Example JSON output:

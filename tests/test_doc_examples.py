@@ -111,7 +111,7 @@ def test_generated_doc_examples_include_uid_delete_table_and_json() -> None:
     examples = render_doc_examples._generated_examples()
 
     table = examples["delete-uid-dry-run"]
-    assert "$ uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087" in table
+    assert "$ imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087" in table
     assert "Criteria             UID 12044,12087" in table
     assert "UID sample           12044, 12087" in table
     assert "Pass --execute to mark these messages \\Deleted." in table

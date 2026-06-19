@@ -13,7 +13,7 @@
 The `folders` command connects to your account and lists every selectable mailbox sorted by size descending.
 
 ```bash
-uv run imap-cleanup folders
+imap-cleanup folders
 ```
 
 ## Output
@@ -21,7 +21,7 @@ uv run imap-cleanup folders
 <!-- doc-example:start folders-table -->
 
 ```console
-$ uv run imap-cleanup folders
+$ imap-cleanup folders
 
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
@@ -50,7 +50,7 @@ If the server supports the `QUOTA` extension, a quota usage line appears above t
 ## JSON output
 
 ```bash
-uv run imap-cleanup folders --format json
+imap-cleanup folders --format json
 ```
 
 The response includes `capabilities`, `folders`, `quota`, and any `errors` encountered per-mailbox during scanning. Each folder entry includes `mailbox`, `messages`, `size_bytes`, `human_size`, and `method`.
@@ -65,7 +65,7 @@ capabilities depend on your IMAP server and account.
 <!-- doc-example:start folders-table -->
 
 ```console
-$ uv run imap-cleanup folders
+$ imap-cleanup folders
 
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
@@ -87,7 +87,7 @@ Caveats:
 ### JSON output
 
 ```console
-uv run imap-cleanup folders --format json
+imap-cleanup folders --format json
 ```
 
 Example JSON output:

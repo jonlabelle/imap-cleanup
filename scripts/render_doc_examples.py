@@ -205,23 +205,22 @@ def _generated_examples() -> dict[str, str]:
 
     return {
         "folders-table": _console_example(
-            "uv run imap-cleanup folders",
+            "imap-cleanup folders",
             render_table(folders_report),
         ),
         "folders-json": _fenced("json", render_json(folders_report)),
         "delete-dry-run": _console_example(
-            "uv run imap-cleanup delete --mailbox Archive --before 2025-01-01",
+            "imap-cleanup delete --mailbox Archive --before 2025-01-01",
             render_deletion_table(delete_report),
         ),
         "delete-json": _fenced("json", render_deletion_json(delete_json_report)),
         "delete-uid-dry-run": _console_example(
-            "uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087",
+            "imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087",
             render_deletion_table(delete_uid_report),
         ),
         "delete-uid-json": _fenced("json", render_deletion_json(delete_uid_report)),
         "delete-folder-recursive": _console_example(
-            'uv run imap-cleanup delete-folder --mailbox "Old Projects" '
-            "--recursive --sample-limit 3",
+            'imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3',
             render_folder_deletion_table(delete_folder_report),
         ),
         "delete-folder-json": _fenced(
