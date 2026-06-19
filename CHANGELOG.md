@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.14.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.13.0...v1.14.0) (2026-06-19)
+
+
+### Features
+
+* enhance search criteria with size filters for deletion reports ([2724564](https://github.com/jonlabelle/imap-cleanup/commit/272456494196370c5e60edbf522d79473f04a233))
+
 # [1.13.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.12.0...v1.13.0) (2026-06-15)
 
 
