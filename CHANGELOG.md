@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.16.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.15.0...v1.16.0) (2026-06-19)
+
+
+### Features
+
+* add version details for windows exec builds ([d5d3516](https://github.com/jonlabelle/imap-cleanup/commit/d5d351683055dba0ed4e066592e92991602a1b95))
+
 # [1.15.0](https://github.com/jonlabelle/imap-cleanup/compare/v1.14.0...v1.15.0) (2026-06-19)
 
 

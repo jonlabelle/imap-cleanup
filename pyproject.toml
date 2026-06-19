@@ -1,6 +1,6 @@
 [project]
 name = "imap-cleanup"
-version = "1.15.0"
+version = "1.16.0"
 description = "IMAP mailbox reporting and cleanup CLI"
 readme = "README.md"
 authors = [
