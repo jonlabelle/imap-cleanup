@@ -112,6 +112,8 @@ def test_generated_doc_examples_include_uid_delete_table_and_json() -> None:
 
     table = examples["delete-uid-dry-run"]
     assert "$ imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087" in table
+    assert "$ uv run imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087" in table
+    assert "# Output\nMailbox              Archive" in table
     assert "Criteria             UID 12044,12087" in table
     assert "UID sample           12044, 12087" in table
     assert "Pass --execute to mark these messages \\Deleted." in table
@@ -127,6 +129,16 @@ def test_generated_doc_examples_include_uid_delete_table_and_json() -> None:
     assert payload["uid_sample"] == [12044, 12087]
     assert payload["marked_deleted_messages"] == 0
     assert [message["uid"] for message in payload["sample_messages"]] == [12044, 12087]
+
+
+def test_generated_doc_command_blocks_include_binary_and_source_invocations() -> None:
+    render_doc_examples = _load_render_doc_examples()
+    examples = render_doc_examples._generated_examples()
+
+    command = examples["delete-folder-command"]
+
+    assert 'imap-cleanup delete-folder --mailbox "Old Projects"' in command
+    assert 'uv run imap-cleanup delete-folder --mailbox "Old Projects"' in command
 
 
 def _load_render_doc_examples() -> Any:

@@ -52,19 +52,31 @@ uv sync --dev
 
 List all mailboxes sorted by size:
 
-```bash
+<!-- doc-example:start folders-command -->
+
+```console
+# Installed binary
 imap-cleanup folders
+
+# Source checkout
+uv run imap-cleanup folders
 ```
+
+<!-- doc-example:end folders-command -->
 
 > Credentials are loaded from a `.env` file or environment variables. See [Configuration](docs/configuration.md) for setup details.
 
 Representative output:
 
 <!-- doc-example:start folders-table -->
-
 ```console
+# Installed binary
 $ imap-cleanup folders
 
+# Source checkout
+$ uv run imap-cleanup folders
+
+# Output
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
 Mailbox  Messages  Size bytes     Size       Method
@@ -79,7 +91,6 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
-
 <!-- doc-example:end folders-table -->
 
 ## Commands

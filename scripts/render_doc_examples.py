@@ -44,6 +44,175 @@ DOC_PATHS = (
 )
 START_RE = re.compile(r"<!-- doc-example:start ([a-z0-9-]+) -->")
 END_RE = re.compile(r"<!-- doc-example:end ([a-z0-9-]+) -->")
+BINARY_COMMAND_PREFIX = ("imap-cleanup",)
+SOURCE_COMMAND_PREFIX = ("uv", "run", "imap-cleanup")
+
+
+class DocCommand:
+    __slots__ = ("args",)
+
+    args: tuple[str, ...]
+
+    def __init__(self, args: tuple[str, ...]) -> None:
+        self.args = args
+
+
+COMMANDS: Mapping[str, DocCommand] = {
+    "folders": DocCommand(("folders",)),
+    "folders-json": DocCommand(("folders", "--format", "json")),
+    "delete-dry-run": DocCommand(("delete", "--mailbox", "Archive", "--before", "2025-01-01")),
+    "delete-sample-limit": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2025-01-01",
+            "--sample-limit",
+            "50",
+        )
+    ),
+    "delete-larger-than": DocCommand(("delete", "--mailbox", "Sent", "--larger-than", "25MiB")),
+    "delete-smaller-than": DocCommand(
+        ("delete", "--mailbox", "Archive", "--smaller-than", "100KiB")
+    ),
+    "delete-before-larger": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2025-01-01",
+            "--larger-than",
+            "10MiB",
+        )
+    ),
+    "delete-date-range": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--since",
+            "2020-01-01",
+            "--before",
+            "2023-01-01",
+        )
+    ),
+    "delete-all-larger": DocCommand(
+        ("delete", "--mailbox", "Trash", "--all", "--larger-than", "1MiB")
+    ),
+    "delete-limit": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2025-01-01",
+            "--limit",
+            "100",
+        )
+    ),
+    "delete-execute": DocCommand(
+        ("delete", "--mailbox", "Archive", "--before", "2025-01-01", "--execute")
+    ),
+    "delete-expunge": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2025-01-01",
+            "--execute",
+            "--expunge",
+        )
+    ),
+    "delete-folder-expunge": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--before",
+            "2025-01-01",
+            "--execute",
+            "--expunge",
+            "--allow-folder-expunge",
+        )
+    ),
+    "delete-json": DocCommand(
+        ("delete", "--mailbox", "Archive", "--before", "2025-01-01", "--format", "json")
+    ),
+    "delete-uid-dry-run": DocCommand(
+        ("delete", "--mailbox", "Archive", "--uid", "12044", "--uid", "12087")
+    ),
+    "delete-uid-execute": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--uid",
+            "12044",
+            "--uid",
+            "12087",
+            "--execute",
+        )
+    ),
+    "delete-uid-expunge": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--uid",
+            "12044",
+            "--uid",
+            "12087",
+            "--execute",
+            "--expunge",
+        )
+    ),
+    "delete-uid-json": DocCommand(
+        (
+            "delete",
+            "--mailbox",
+            "Archive",
+            "--uid",
+            "12044",
+            "--uid",
+            "12087",
+            "--format",
+            "json",
+        )
+    ),
+    "delete-folder": DocCommand(("delete-folder", "--mailbox", "Old Projects")),
+    "delete-folder-execute": DocCommand(
+        ("delete-folder", "--mailbox", "Old Projects", "--execute")
+    ),
+    "delete-folder-recursive": DocCommand(
+        (
+            "delete-folder",
+            "--mailbox",
+            "Old Projects",
+            "--recursive",
+            "--sample-limit",
+            "3",
+        )
+    ),
+    "delete-folder-recursive-sample": DocCommand(
+        (
+            "delete-folder",
+            "--mailbox",
+            "Old Projects",
+            "--recursive",
+            "--sample-limit",
+            "25",
+        )
+    ),
+    "delete-folder-recursive-execute": DocCommand(
+        ("delete-folder", "--mailbox", "Old Projects", "--recursive", "--execute")
+    ),
+    "delete-folder-json": DocCommand(
+        ("delete-folder", "--mailbox", "Old Projects", "--format", "json")
+    ),
+}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -204,25 +373,50 @@ def _generated_examples() -> dict[str, str]:
     delete_folder_json_report = _delete_folder_json_report()
 
     return {
+        "folders-command": _command_example(COMMANDS["folders"]),
         "folders-table": _console_example(
-            "imap-cleanup folders",
+            COMMANDS["folders"],
             render_table(folders_report),
         ),
+        "folders-json-command": _command_example(COMMANDS["folders-json"]),
         "folders-json": _fenced("json", render_json(folders_report)),
+        "delete-sample-limit-command": _command_example(COMMANDS["delete-sample-limit"]),
+        "delete-larger-than-command": _command_example(COMMANDS["delete-larger-than"]),
+        "delete-smaller-than-command": _command_example(COMMANDS["delete-smaller-than"]),
+        "delete-before-larger-command": _command_example(COMMANDS["delete-before-larger"]),
+        "delete-date-range-command": _command_example(COMMANDS["delete-date-range"]),
+        "delete-all-larger-command": _command_example(COMMANDS["delete-all-larger"]),
+        "delete-limit-command": _command_example(COMMANDS["delete-limit"]),
+        "delete-execute-command": _command_example(COMMANDS["delete-execute"]),
+        "delete-expunge-command": _command_example(COMMANDS["delete-expunge"]),
+        "delete-folder-expunge-command": _command_example(COMMANDS["delete-folder-expunge"]),
         "delete-dry-run": _console_example(
-            "imap-cleanup delete --mailbox Archive --before 2025-01-01",
+            COMMANDS["delete-dry-run"],
             render_deletion_table(delete_report),
         ),
+        "delete-json-command": _command_example(COMMANDS["delete-json"]),
         "delete-json": _fenced("json", render_deletion_json(delete_json_report)),
+        "delete-uid-execute-command": _command_example(COMMANDS["delete-uid-execute"]),
+        "delete-uid-expunge-command": _command_example(COMMANDS["delete-uid-expunge"]),
         "delete-uid-dry-run": _console_example(
-            "imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087",
+            COMMANDS["delete-uid-dry-run"],
             render_deletion_table(delete_uid_report),
         ),
+        "delete-uid-json-command": _command_example(COMMANDS["delete-uid-json"]),
         "delete-uid-json": _fenced("json", render_deletion_json(delete_uid_report)),
+        "delete-folder-command": _command_example(COMMANDS["delete-folder"]),
+        "delete-folder-execute-command": _command_example(COMMANDS["delete-folder-execute"]),
         "delete-folder-recursive": _console_example(
-            'imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3',
+            COMMANDS["delete-folder-recursive"],
             render_folder_deletion_table(delete_folder_report),
         ),
+        "delete-folder-recursive-sample-command": _command_example(
+            COMMANDS["delete-folder-recursive-sample"]
+        ),
+        "delete-folder-recursive-execute-command": _command_example(
+            COMMANDS["delete-folder-recursive-execute"]
+        ),
+        "delete-folder-json-command": _command_example(COMMANDS["delete-folder-json"]),
         "delete-folder-json": _fenced(
             "json",
             render_folder_deletion_json(delete_folder_json_report),
@@ -421,8 +615,32 @@ def _delete_folder_json_report() -> FolderDeletionReport:
     )
 
 
-def _console_example(command: str, output: str) -> str:
-    return _fenced("console", f"$ {command}\n\n{output}")
+def _command_example(command: DocCommand) -> str:
+    return _fenced("console", _command_lines(command, prompt=False))
+
+
+def _console_example(command: DocCommand, output: str) -> str:
+    return _fenced("console", f"{_command_lines(command, prompt=True)}\n\n# Output\n{output}")
+
+
+def _command_lines(command: DocCommand, *, prompt: bool) -> str:
+    prompt_prefix = "$ " if prompt else ""
+    binary = _join_command((*BINARY_COMMAND_PREFIX, *command.args))
+    source = _join_command((*SOURCE_COMMAND_PREFIX, *command.args))
+    return (
+        f"# Installed binary\n{prompt_prefix}{binary}\n\n# Source checkout\n{prompt_prefix}{source}"
+    )
+
+
+def _join_command(parts: Sequence[str]) -> str:
+    return " ".join(_quote_command_part(part) for part in parts)
+
+
+def _quote_command_part(part: str) -> str:
+    if part and not any(character.isspace() for character in part):
+        return part
+    escaped = part.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def _fenced(language: str, body: str) -> str:

@@ -6,7 +6,7 @@
 - [Delete Folder](delete-folder.md) — preview, dry run, or delete an entire mailbox/folder and optional child folders
 - [Common IMAP Terms](terms.md) — short definitions for common IMAP terms, commands, flags, and extensions
 
-Relevant pages include an Examples section with worked usage.
+Relevant pages include an Examples section with worked usage. Command examples show an installed binary invocation first, followed by the equivalent source-checkout `uv run imap-cleanup` command.
 
 ---
 

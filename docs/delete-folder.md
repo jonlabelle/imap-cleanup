@@ -12,9 +12,17 @@
 
 The `delete-folder` command deletes an IMAP mailbox/folder and the messages stored in that mailbox. It is always a dry run unless you pass `--execute`. In dry-run mode a sample of affected messages is shown automatically.
 
-```bash
+<!-- doc-example:start delete-folder-command -->
+
+```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects"
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects"
 ```
+
+<!-- doc-example:end delete-folder-command -->
 
 Use `delete-folder` when you want the folder itself removed. Use [`delete`](delete.md) when you want to keep the folder but mark selected messages `\Deleted`.
 
@@ -64,17 +72,33 @@ on your IMAP server and account.
 
 Check the message count before deleting the folder itself:
 
+<!-- doc-example:start delete-folder-command -->
+
 ```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects"
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects"
 ```
+
+<!-- doc-example:end delete-folder-command -->
 
 ### Execute
 
 Delete the folder and the messages stored in that folder:
 
+<!-- doc-example:start delete-folder-execute-command -->
+
 ```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects" --execute
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --execute
 ```
+
+<!-- doc-example:end delete-folder-execute-command -->
 
 ### Recursive preview
 
@@ -82,10 +106,14 @@ Check the folder and all selectable child folders, plus a sample of messages, be
 anything:
 
 <!-- doc-example:start delete-folder-recursive -->
-
 ```console
+# Installed binary
 $ imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3
 
+# Source checkout
+$ uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3
+
+# Output
 Mailbox             Old Projects
 Mode                dry-run
 Recursive           yes
@@ -118,28 +146,51 @@ Warnings:
 
 Pass --execute to delete these mailboxes and all messages they contain.
 ```
-
 <!-- doc-example:end delete-folder-recursive -->
 
 Fetch a wider sample when the folder tree is large:
 
+<!-- doc-example:start delete-folder-recursive-sample-command -->
+
 ```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 25
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 25
 ```
+
+<!-- doc-example:end delete-folder-recursive-sample-command -->
 
 ### Recursive execute
 
 Delete child folders first, then the parent folder:
 
+<!-- doc-example:start delete-folder-recursive-execute-command -->
+
 ```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --recursive --execute
 ```
+
+<!-- doc-example:end delete-folder-recursive-execute-command -->
 
 ### JSON output
 
+<!-- doc-example:start delete-folder-json-command -->
+
 ```console
+# Installed binary
 imap-cleanup delete-folder --mailbox "Old Projects" --format json
+
+# Source checkout
+uv run imap-cleanup delete-folder --mailbox "Old Projects" --format json
 ```
+
+<!-- doc-example:end delete-folder-json-command -->
 
 Example JSON output:
 

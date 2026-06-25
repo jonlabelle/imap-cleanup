@@ -12,17 +12,29 @@
 
 The `folders` command connects to your account and lists every selectable mailbox sorted by size descending.
 
-```bash
+<!-- doc-example:start folders-command -->
+
+```console
+# Installed binary
 imap-cleanup folders
+
+# Source checkout
+uv run imap-cleanup folders
 ```
+
+<!-- doc-example:end folders-command -->
 
 ## Output
 
 <!-- doc-example:start folders-table -->
-
 ```console
+# Installed binary
 $ imap-cleanup folders
 
+# Source checkout
+$ uv run imap-cleanup folders
+
+# Output
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
 Mailbox  Messages  Size bytes     Size       Method
@@ -37,7 +49,6 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
-
 <!-- doc-example:end folders-table -->
 
 The `Method` column tells you how the size was calculated:
@@ -49,9 +60,17 @@ If the server supports the `QUOTA` extension, a quota usage line appears above t
 
 ## JSON output
 
-```bash
+<!-- doc-example:start folders-json-command -->
+
+```console
+# Installed binary
 imap-cleanup folders --format json
+
+# Source checkout
+uv run imap-cleanup folders --format json
 ```
+
+<!-- doc-example:end folders-json-command -->
 
 The response includes `capabilities`, `folders`, `quota`, and any `errors` encountered per-mailbox during scanning. Each folder entry includes `mailbox`, `messages`, `size_bytes`, `human_size`, and `method`.
 
@@ -63,10 +82,14 @@ capabilities depend on your IMAP server and account.
 ### List all mailboxes
 
 <!-- doc-example:start folders-table -->
-
 ```console
+# Installed binary
 $ imap-cleanup folders
 
+# Source checkout
+$ uv run imap-cleanup folders
+
+# Output
 Quota root "": STORAGE 4.6 GiB / 15.0 GiB
 
 Mailbox  Messages  Size bytes     Size       Method
@@ -81,14 +104,21 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
-
 <!-- doc-example:end folders-table -->
 
 ### JSON output
 
+<!-- doc-example:start folders-json-command -->
+
 ```console
+# Installed binary
 imap-cleanup folders --format json
+
+# Source checkout
+uv run imap-cleanup folders --format json
 ```
+
+<!-- doc-example:end folders-json-command -->
 
 Example JSON output:
 
