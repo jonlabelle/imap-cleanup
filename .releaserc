@@ -18,6 +18,7 @@
     [
       "@semantic-release/exec",
       {
+        "verifyReleaseCmd": "python3 scripts/verify_release_binaries.py release-bundle release-binaries",
         "prepareCmd": "python3 scripts/set_project_version.py ${nextRelease.version}"
       }
     ],

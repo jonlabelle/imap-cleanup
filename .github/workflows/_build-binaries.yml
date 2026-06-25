@@ -70,6 +70,9 @@ jobs:
           --icon assets/imap-cleanup.ico
           src/imap_cleanup/__main__.py
 
+      - name: Verify binary
+        run: uv run python scripts/verify_release_binaries.py built-binary "dist/${{ matrix.binary-name }}"
+
       - name: Upload binary artifact
         uses: actions/upload-artifact@main
         with:
