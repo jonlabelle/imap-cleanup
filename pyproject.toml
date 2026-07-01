@@ -18,7 +18,7 @@ Homepage = "https://github.com/jonlabelle/imap-cleanup"
 imap-cleanup = "imap_cleanup:main"
 
 [build-system]
-requires = ["uv_build>=0.11.21,<0.12.0"]
+requires = ["uv_build>=0.11.26,<0.12.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
