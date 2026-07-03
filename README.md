@@ -69,6 +69,7 @@ uv run imap-cleanup folders
 Representative output:
 
 <!-- doc-example:start folders-table -->
+
 ```console
 # Installed binary
 $ imap-cleanup folders
@@ -91,6 +92,7 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
+
 <!-- doc-example:end folders-table -->
 
 ## Commands

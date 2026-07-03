@@ -100,6 +100,7 @@ See what would be deleted from `Archive` before January 1, 2025, without touchin
 Includes a sample of affected message headers:
 
 <!-- doc-example:start delete-dry-run -->
+
 ```console
 # Installed binary
 $ imap-cleanup delete --mailbox Archive --before 2025-01-01
@@ -129,6 +130,7 @@ UID    Date                            From                                 Subj
 
 Pass --execute to mark these messages \Deleted.
 ```
+
 <!-- doc-example:end delete-dry-run -->
 
 To show more message summaries:
@@ -338,6 +340,7 @@ Example JSON output:
 Dry run — preview one or more messages by UID:
 
 <!-- doc-example:start delete-uid-dry-run -->
+
 ```console
 # Installed binary
 $ imap-cleanup delete --mailbox Archive --uid 12044 --uid 12087
@@ -367,6 +370,7 @@ UID    Date                            From                                 Subj
 
 Pass --execute to mark these messages \Deleted.
 ```
+
 <!-- doc-example:end delete-uid-dry-run -->
 
 Mark them deleted:

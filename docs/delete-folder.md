@@ -106,6 +106,7 @@ Check the folder and all selectable child folders, plus a sample of messages, be
 anything:
 
 <!-- doc-example:start delete-folder-recursive -->
+
 ```console
 # Installed binary
 $ imap-cleanup delete-folder --mailbox "Old Projects" --recursive --sample-limit 3
@@ -146,6 +147,7 @@ Warnings:
 
 Pass --execute to delete these mailboxes and all messages they contain.
 ```
+
 <!-- doc-example:end delete-folder-recursive -->
 
 Fetch a wider sample when the folder tree is large:

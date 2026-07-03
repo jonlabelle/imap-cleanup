@@ -27,6 +27,7 @@ uv run imap-cleanup folders
 ## Output
 
 <!-- doc-example:start folders-table -->
+
 ```console
 # Installed binary
 $ imap-cleanup folders
@@ -49,6 +50,7 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
+
 <!-- doc-example:end folders-table -->
 
 The `Method` column tells you how the size was calculated:
@@ -82,6 +84,7 @@ capabilities depend on your IMAP server and account.
 ### List all mailboxes
 
 <!-- doc-example:start folders-table -->
+
 ```console
 # Installed binary
 $ imap-cleanup folders
@@ -104,6 +107,7 @@ Caveats:
 - Messages marked \Deleted may still count until the mailbox is expunged; the
   report reflects what the server returns at scan time.
 ```
+
 <!-- doc-example:end folders-table -->
 
 ### JSON output
