@@ -30,10 +30,12 @@ directory on your `PATH`. For example, on Linux or macOS:
 
 ```console
 # Linux:
-sudo install -m 755 imap-cleanup-linux-x86_64 /usr/local/bin/imap-cleanup
+mkdir -p ~/bin
+install -m 755 imap-cleanup-linux-x86_64 ~/bin/imap-cleanup
 
 # macOS:
-sudo install -m 755 imap-cleanup-macos-arm64 /usr/local/bin/imap-cleanup
+mkdir -p ~/bin
+install -m 755 imap-cleanup-macos-arm64 ~/bin/imap-cleanup
 
 imap-cleanup --help
 ```
